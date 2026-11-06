@@ -141,17 +141,17 @@ extension ForgeTheme {
 extension ForgeTheme {
     /// Display / SF Rounded heading.
     func display(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
-        .custom("Monocraft", size: size)
+        .system(size: size, weight: weight, design: .rounded)
     }
 
     /// Sans body typography.
     func sans(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {
-        .custom("Monocraft", size: size)
+        .system(size: size, weight: weight)
     }
 
     /// Monospaced — pervasive for values, badges, and labels.
     func mono(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {
-        .custom("Monocraft", size: size)
+        .system(size: size, weight: weight, design: .monospaced)
     }
 }
 

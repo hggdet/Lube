@@ -211,7 +211,7 @@ struct ContentView: View {
             ForgeGlassLogoView(size: 60)
 
             Text("Lube")
-                .font(T.display(30))
+                .font(.custom("Monocraft", size: 30))
                 .foregroundColor(T.ink)
 
             VStack(spacing: 3) {
@@ -257,7 +257,7 @@ struct ContentView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(T.accent2)
                     .frame(width: 22)
-                Text("Certificate (.p12)").font(T.sans(15, .medium)).foregroundColor(T.ink)
+                Text("Certificate").font(T.sans(15, .medium)).foregroundColor(T.ink)
                 Spacer(minLength: 8)
                 if let cert = certStore.selected {
                     let expiry = P12Inspector.expiry(cert.notAfter)
@@ -293,7 +293,7 @@ struct ContentView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(T.accent2)
                     .frame(width: 22)
-                Text("Profile (.mobileprovision)").font(T.sans(15, .medium)).foregroundColor(T.ink)
+                Text("Profile").font(T.sans(15, .medium)).foregroundColor(T.ink)
                 Spacer(minLength: 8)
                 if let profile = profileStore.selected {
                     let expiry = P12Inspector.expiry(profile.notAfter)
