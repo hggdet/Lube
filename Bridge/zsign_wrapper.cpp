@@ -900,7 +900,7 @@ extern "C" int forgesign_extract_app_icon(const char* ipaPath,
         // Last resort: any AppIcon*.png at the bundle root.
         ZFile::EnumFolder(appFolder.c_str(), false, NULL, [&](bool bFolder, const string& path) {
             if (!bFolder && ZFile::IsPathSuffix(path, ".png") &&
-                ZUtil::GetBaseName(path.c_str()).find("AppIcon") == 0) {
+                string(ZUtil::GetBaseName(path.c_str())).find("AppIcon") == 0) {
                 consider(path);
             }
             return false;
