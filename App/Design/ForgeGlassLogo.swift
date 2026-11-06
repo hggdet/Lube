@@ -1,17 +1,20 @@
 import SwiftUI
 
-/// Homepage / Library header mark — the app's own icon in a rounded tile.
+/// Homepage / Library header mark — the +P symbol on a colorless
+/// Liquid Glass tile.
 struct ForgeGlassLogoView: View {
     var size: CGFloat = 60
 
     @Environment(\.forgeTheme) private var T
 
     var body: some View {
-        Image("HeaderIcon")
+        Image("HeaderSymbol")
             .resizable()
-            .scaledToFill()
+            .scaledToFit()
+            .frame(width: size * 0.64, height: size * 0.64)
+            .foregroundColor(T.accentStrong)
             .frame(width: size, height: size)
-            .clipShape(RoundedRectangle(cornerRadius: size * 0.30, style: .continuous))
+            .fClearGlass(in: RoundedRectangle(cornerRadius: size * 0.30, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
                     .stroke(T.rule, lineWidth: AppStroke.hairline)
