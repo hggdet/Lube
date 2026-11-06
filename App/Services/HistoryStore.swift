@@ -51,9 +51,12 @@ struct SigningRecord: Codable, Identifiable, Equatable {
 final class HistoryStore: ObservableObject {
     @Published private(set) var records: [SigningRecord] = []
     @Published private(set) var availableRecordIDs: Set<UUID> = []
+    /// Records whose real app icon has been extracted to disk.
+    @Published private(set) var iconIDs: Set<UUID> = []
 
     let signedDir: URL
     private let indexURL: URL
+    private var iconInFlight: Set<UUID> = []
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -62,10 +65,36 @@ final class HistoryStore: ObservableObject {
         indexURL = base.appendingPathComponent("history.json")
         load()
         refreshFileAvailability()
+        iconIDs = Set(records.compactMap { record in
+            FileManager.default.fileExists(atPath: iconURL(for: record).path)
+                ? record.id : nil
+        })
     }
 
     func outputURL(for record: SigningRecord) -> URL {
         signedDir.appendingPathComponent(record.outputName)
+    }
+
+    func iconURL(for record: SigningRecord) -> URL {
+        signedDir.appendingPathComponent(record.id.uuidString + ".icon.png")
+    }
+
+    /// Extracts the record's real app icon from its signed IPA, once, in the
+    /// background. Rows call this when they appear without an icon.
+    func ensureIcon(for record: SigningRecord) {
+        guard !iconIDs.contains(record.id), !iconInFlight.contains(record.id) else { return }
+        guard fileExists(for: record) else { return }
+        let ipa = outputURL(for: record)
+        let destination = iconURL(for: record)
+        let id = record.id
+        iconInFlight.insert(id)
+        Task.detached(priority: .utility) {
+            let ok = AppIconService.extractIcon(from: ipa, to: destination)
+            await MainActor.run { [weak self] in
+                self?.iconInFlight.remove(id)
+                if ok { self?.iconIDs.insert(id) }
+            }
+        }
     }
 
     func uniqueOutputURL(for inputName: String) -> URL {
@@ -108,6 +137,7 @@ final class HistoryStore: ObservableObject {
         records.insert(record, at: 0)
         availableRecordIDs.insert(record.id)
         save()
+        ensureIcon(for: record)
         return record
     }
 
@@ -133,8 +163,10 @@ final class HistoryStore: ObservableObject {
 
     func delete(_ record: SigningRecord) {
         try? FileManager.default.removeItem(at: outputURL(for: record))
+        try? FileManager.default.removeItem(at: iconURL(for: record))
         records.removeAll { $0.id == record.id }
         availableRecordIDs.remove(record.id)
+        iconIDs.remove(record.id)
         save()
     }
 

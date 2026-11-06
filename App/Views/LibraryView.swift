@@ -45,28 +45,6 @@ struct LibraryView: View {
                 .background { ForgeBackdrop() }
                 .toolbar(.hidden, for: .navigationBar)
             }
-            .confirmationDialog(
-                activeRecord?.outputName ?? "",
-                isPresented: Binding(get: { activeRecord != nil },
-                                     set: { if !$0 { activeRecord = nil } }),
-                presenting: activeRecord
-            ) { record in
-                if history.fileExists(for: record) {
-                    Button("Install on Device") { onInstall(record) }
-                    Button("Share / Save IPA") { shareRecord = record }
-                }
-                if refreshSources.sourceURL(for: record.id) != nil {
-                    Button("Refresh — re-sign \(refreshSources.sourceName(for: record.id) ?? "the kept original")") {
-                        onRefresh(record)
-                    }
-                    Button("Drop kept original") { refreshSources.removeSource(for: record.id) }
-                }
-                if history.fileExists(for: record) {
-                    Button("Delete signed IPA", role: .destructive) { history.delete(record) }
-                } else {
-                    Button("Remove from Library", role: .destructive) { history.delete(record) }
-                }
-            }
             .sheet(item: $shareRecord) { record in
                 ShareSheet(items: [history.outputURL(for: record)])
             }
@@ -133,11 +111,7 @@ struct LibraryView: View {
             activeRecord = record
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: "app.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(T.accent2)
-                    .frame(width: 38, height: 38)
-                    .fClearGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                RecordIconView(record: record)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(record.outputName)
@@ -186,6 +160,59 @@ struct LibraryView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GlassTactileButtonStyle())
+        .popover(isPresented: Binding(
+            get: { activeRecord?.id == record.id },
+            set: { if !$0 { activeRecord = nil } }
+        )) {
+            actionMenu(record)
+        }
+    }
+
+    /// Actions for one library record, shown as a popover anchored to the
+    /// tapped row itself (not as a sheet at the bottom of the screen).
+    private func actionMenu(_ record: SigningRecord) -> some View {
+        VStack(spacing: 8) {
+            if history.fileExists(for: record) {
+                menuButton("Install on Device") {
+                    activeRecord = nil
+                    onInstall(record)
+                }
+                menuButton("Share / Save IPA") {
+                    activeRecord = nil
+                    shareRecord = record
+                }
+            }
+            if refreshSources.sourceURL(for: record.id) != nil {
+                menuButton("Refresh — re-sign \(refreshSources.sourceName(for: record.id) ?? "the kept original")") {
+                    activeRecord = nil
+                    onRefresh(record)
+                }
+                menuButton("Drop kept original") {
+                    activeRecord = nil
+                    refreshSources.removeSource(for: record.id)
+                }
+            }
+            menuButton(history.fileExists(for: record) ? "Delete signed IPA" : "Remove from Library",
+                       destructive: true) {
+                activeRecord = nil
+                history.delete(record)
+            }
+        }
+        .padding(12)
+        .frame(width: 300)
+        .forgePopoverAdaptation()
+    }
+
+    private func menuButton(_ title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(T.sans(15, .medium))
+                .foregroundColor(destructive ? T.bad : T.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .fGlass(cornerRadius: 14)
+        }
+        .buttonStyle(GlassTactileButtonStyle())
     }
 
     @ViewBuilder
@@ -224,5 +251,51 @@ struct LibraryView: View {
         let interval = expiry.timeIntervalSinceNow
         if interval <= 0 { return T.bad }
         return interval <= RefreshPlanner.refreshWindow ? T.warn : T.ink3
+    }
+}
+
+private extension View {
+    /// Forces popover presentation on iPhone where supported, so the menu
+    /// stays anchored to the tapped row instead of sliding up as a sheet.
+    @ViewBuilder
+    func forgePopoverAdaptation() -> some View {
+        if #available(iOS 16.4, *) {
+            presentationCompactAdaptation(.popover)
+        } else {
+            self
+        }
+    }
+}
+
+/// The signed app's real icon, extracted from its IPA; falls back to the
+/// generic placeholder while extraction runs or when no icon exists.
+private struct RecordIconView: View {
+    @EnvironmentObject private var history: HistoryStore
+    @Environment(\.forgeTheme) private var T
+    let record: SigningRecord
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "app.fill")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(T.accent2)
+            }
+        }
+        .frame(width: 38, height: 38)
+        .fClearGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .task(id: history.iconIDs.contains(record.id)) {
+            if history.iconIDs.contains(record.id) {
+                image = UIImage(contentsOfFile: history.iconURL(for: record).path)
+            } else {
+                history.ensureIcon(for: record)
+            }
+        }
     }
 }

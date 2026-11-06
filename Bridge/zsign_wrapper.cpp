@@ -761,6 +761,166 @@ extern "C" int forgesign_inspect_ipa(const char* ipaPath,
     return 0;
 }
 
+// Icon file base names declared by an app's Info.plist
+// (CFBundleIcons -> CFBundlePrimaryIcon -> CFBundleIconFiles, with the
+// legacy top-level CFBundleIconFiles as a fallback).
+static vector<string> FSReadPlistIconNames(const string& path)
+{
+    vector<string> names;
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) return names;
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0) { fclose(f); return names; }
+    vector<uint8_t> buf(sz);
+    size_t rd = fread(buf.data(), 1, sz, f);
+    fclose(f);
+    if (rd != (size_t)sz) return names;
+
+    CFDataRef data = CFDataCreate(NULL, buf.data(), sz);
+    if (!data) return names;
+    CFPropertyListRef plist = CFPropertyListCreateWithData(NULL, data, kCFPropertyListImmutable, NULL, NULL);
+    CFRelease(data);
+    if (!plist) return names;
+
+    auto appendFromDict = [&names](CFDictionaryRef dict) {
+        CFTypeRef arr = CFDictionaryGetValue(dict, CFSTR("CFBundleIconFiles"));
+        if (arr && CFArrayGetTypeID() == CFGetTypeID(arr)) {
+            CFIndex n = CFArrayGetCount((CFArrayRef)arr);
+            for (CFIndex i = 0; i < n; i++) {
+                CFTypeRef v = CFArrayGetValueAtIndex((CFArrayRef)arr, i);
+                if (v && CFStringGetTypeID() == CFGetTypeID(v)) {
+                    char tmp[256];
+                    if (CFStringGetCString((CFStringRef)v, tmp, sizeof(tmp), kCFStringEncodingUTF8)) {
+                        names.push_back(tmp);
+                    }
+                }
+            }
+        }
+    };
+
+    if (CFDictionaryGetTypeID() == CFGetTypeID(plist)) {
+        CFDictionaryRef root = (CFDictionaryRef)plist;
+        CFTypeRef icons = CFDictionaryGetValue(root, CFSTR("CFBundleIcons"));
+        if (icons && CFDictionaryGetTypeID() == CFGetTypeID(icons)) {
+            CFTypeRef primary = CFDictionaryGetValue((CFDictionaryRef)icons, CFSTR("CFBundlePrimaryIcon"));
+            if (primary && CFDictionaryGetTypeID() == CFGetTypeID(primary)) {
+                appendFromDict((CFDictionaryRef)primary);
+            }
+        }
+        if (names.empty()) appendFromDict(root);
+    }
+    CFRelease(plist);
+    return names;
+}
+
+static int FSPngWidth(const string& path)
+{
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) return 0;
+    uint8_t hdr[24];
+    size_t rd = fread(hdr, 1, sizeof(hdr), f);
+    fclose(f);
+    if (rd < sizeof(hdr)) return 0;
+    if (hdr[0] != 0x89 || hdr[1] != 'P' || hdr[2] != 'N' || hdr[3] != 'G') return 0;
+    return (hdr[16] << 24) | (hdr[17] << 16) | (hdr[18] << 8) | hdr[19];
+}
+
+// Extracts the largest declared app icon from an IPA into outputPath (PNG),
+// so the Library can show each signed app's real icon.
+extern "C" int forgesign_extract_app_icon(const char* ipaPath,
+                                          const char* outputPath,
+                                          const char* tempFolder,
+                                          char* msgBuf,
+                                          int msgBufLen)
+{
+    auto setMsg = [&](const string& message) {
+        if (msgBuf && msgBufLen > 0) {
+            snprintf(msgBuf, msgBufLen, "%s", message.c_str());
+        }
+    };
+
+    string strIpa = ipaPath ? ipaPath : "";
+    string strOutput = outputPath ? outputPath : "";
+    string strTemp = tempFolder ? tempFolder : "";
+    if (strIpa.empty() || strOutput.empty() || strTemp.empty()) {
+        setMsg("Missing IPA, output, or temporary folder.");
+        return 1;
+    }
+    if (!ZFile::IsFileExists(strIpa.c_str())) {
+        setMsg("IPA not found.");
+        return 2;
+    }
+    if (!ZFile::IsZipFile(strIpa.c_str())) {
+        setMsg("Input is not a valid IPA/zip.");
+        return 3;
+    }
+    if (!ZFile::IsFolder(strTemp.c_str())) {
+        setMsg("Invalid temporary folder.");
+        return 4;
+    }
+
+    string strFolder = ZFile::GetRealPathV("%s/fs_icon_%llu", strTemp.c_str(), ZUtil::GetMicroSecond());
+    if (!Zip::Extract(strIpa.c_str(), strFolder.c_str())) {
+        setMsg("Failed to extract IPA for icon extraction.");
+        return 5;
+    }
+
+    string appFolder;
+    string structureError;
+    if (!FSValidateExtractedIPA(strFolder, appFolder, structureError)) {
+        ZFile::RemoveFolder(strFolder.c_str());
+        setMsg(structureError);
+        return 6;
+    }
+
+    vector<string> bases = FSReadPlistIconNames(appFolder + "/Info.plist");
+    bases.push_back("AppIcon60x60");
+    bases.push_back("AppIcon");
+    bases.push_back("Icon");
+
+    string best;
+    int bestWidth = 0;
+    auto consider = [&](const string& candidate) {
+        if (!ZFile::IsRegularFile(candidate.c_str())) return;
+        int w = FSPngWidth(candidate);
+        if (w > bestWidth) { bestWidth = w; best = candidate; }
+    };
+    for (const string& base : bases) {
+        string b = base;
+        if (b.size() > 4 && b.substr(b.size() - 4) == ".png") b = b.substr(0, b.size() - 4);
+        consider(appFolder + "/" + b + "@3x.png");
+        consider(appFolder + "/" + b + "@2x.png");
+        consider(appFolder + "/" + b + ".png");
+        consider(appFolder + "/" + b + "@3x~iphone.png");
+        consider(appFolder + "/" + b + "@2x~iphone.png");
+    }
+    if (best.empty()) {
+        // Last resort: any AppIcon*.png at the bundle root.
+        ZFile::EnumFolder(appFolder.c_str(), false, NULL, [&](bool bFolder, const string& path) {
+            if (!bFolder && ZFile::IsPathSuffix(path, ".png") &&
+                ZUtil::GetBaseName(path.c_str()).find("AppIcon") == 0) {
+                consider(path);
+            }
+            return false;
+        });
+    }
+    if (best.empty()) {
+        ZFile::RemoveFolder(strFolder.c_str());
+        setMsg("No app icon found in IPA.");
+        return 7;
+    }
+    if (!ZFile::CopyFile(best.c_str(), strOutput.c_str())) {
+        ZFile::RemoveFolder(strFolder.c_str());
+        setMsg("Could not save the app icon.");
+        return 8;
+    }
+    ZFile::RemoveFolder(strFolder.c_str());
+    setMsg("App icon extracted.");
+    return 0;
+}
+
 // Validates a PKCS#12 with the same OpenSSL engine used for signing (the
 // system SecPKCS12Import rejects OpenSSL-3 style AES-256 p12 files) and
 // reports subject CN / O / OU plus the notAfter epoch for the UI.
