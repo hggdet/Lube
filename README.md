@@ -21,7 +21,3 @@
 - مصادر (Sources) لتحميل التطبيقات وتوقيعها من مكان واحد
 - حقن dylib وفحص الحزمة قبل التوقيع
 - iOS 16 فأحدث
-
----
-
-Lube مبني على مشروع [ForgeSign](https://github.com/Mesutcydev/ForgeSign-iOS) الأصلي من تطوير Mesutcydev، ويعتمد محرك التوقيع [zsign](https://github.com/zhlynn/zsign).
