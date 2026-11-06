@@ -1,0 +1,39 @@
+name: Build Official IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build device Release target
+        run: |
+          xcodebuild build \
+            -project ForgeSignMobile.xcodeproj \
+            -scheme ForgeSignMobile \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/ci-derived \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package unsigned IPA
+        run: |
+          python3 scripts/package_ipa.py pack \
+            build/ci-derived/Build/Products/Release-iphoneos/ForgeSign.app \
+            build/ForgeSign-2.7.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ForgeSign-Official-IPA
+          path: build/ForgeSign-2.7.ipa
