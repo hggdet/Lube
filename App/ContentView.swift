@@ -210,7 +210,7 @@ struct ContentView: View {
         VStack(spacing: T.gap) {
             ForgeGlassLogoView(size: 60)
 
-            Text("ForgeSign")
+            Text("Lube")
                 .font(T.display(30))
                 .foregroundColor(T.ink)
 
@@ -521,7 +521,7 @@ struct ContentView: View {
         let localURL = signer.stage(source) ?? (fallbackToSource ? source : nil)
         guard let localURL else {
             ipaURL = nil
-            preflightState = .failed("The IPA could not be copied into ForgeSign storage.")
+            preflightState = .failed("The IPA could not be copied into Lube storage.")
             return
         }
 
@@ -582,7 +582,7 @@ struct ContentView: View {
         if automaticProvisioningEnabled {
             if !isAppleAccountReady {
                 if canSignManually {
-                    return "Apple Account details are incomplete — ForgeSign will sign with the selected certificate and profile."
+                    return "Apple Account details are incomplete — Lube will sign with the selected certificate and profile."
                 }
                 return "Add a certificate and profile, or enter your Apple Account details plus an anisette source."
             }
@@ -692,8 +692,8 @@ struct ContentView: View {
               let pw = effectivePassword,
               let profile = profileStore.selected else {
             signNotice = allowAutomaticProvisioning
-                ? "Signing needs a certificate (.p12 with its password) and a provisioning profile. Add them under Input, or enter your Apple Account details under Provisioning so ForgeSign can create them."
-                : "ForgeSign could not select the certificate or profile it just created. Tap Sign again, or import a certificate and profile manually."
+                ? "Signing needs a certificate (.p12 with its password) and a provisioning profile. Add them under Input, or enter your Apple Account details under Provisioning so Lube can create them."
+                : "Lube could not select the certificate or profile it just created. Tap Sign again, or import a certificate and profile manually."
             return
         }
         let p12 = certStore.fileURL(for: cert)

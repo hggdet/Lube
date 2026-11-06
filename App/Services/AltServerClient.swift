@@ -29,7 +29,7 @@ enum AltServerClientError: LocalizedError, Sendable {
         case .httpStatus(let status):
             return "The anisette server returned HTTP \(status). Apple may be temporarily unavailable; try again shortly."
         case .serverRejected(_, let message) where message?.localizedCaseInsensitiveContains("machineID") == true:
-            return "AltServer on macOS 27 could not create anisette data (missing machineID). ForgeSign will use this iPhone or an anisette server instead."
+            return "AltServer on macOS 27 could not create anisette data (missing machineID). Lube will use this iPhone or an anisette server instead."
         case .serverRejected(let code, let message):
             if let message, !message.isEmpty { return message }
             if let code { return "AltServer rejected the anisette request (error \(code))." }

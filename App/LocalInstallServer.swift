@@ -431,7 +431,7 @@ final class LocalInstallServer: @unchecked Sendable {
         </head>
         <body><div class="bloom b1"></div><div class="bloom b2"></div><div class="card">
         <h1>Install \(safeTitle)</h1>
-        <p>Tap Install, accept the iOS prompt, then return to ForgeSign to see whether the IPA was delivered.</p>
+        <p>Tap Install, accept the iOS prompt, then return to Lube to see whether the IPA was delivered.</p>
         <a id="install" href="\(safeItms)">Install</a>
         </div>
         </body></html>
