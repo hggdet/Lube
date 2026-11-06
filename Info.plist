@@ -7,11 +7,6 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	
-	<key>UIAppFonts</key>
-	<array>
-		<string>Monocraft.ttf</string>
-		<string>Monocraft-Bold.ttf</string>
-	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Lube</string>
 	<key>CFBundleDocumentTypes</key>
