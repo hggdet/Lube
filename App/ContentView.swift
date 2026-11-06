@@ -211,7 +211,7 @@ struct ContentView: View {
             ForgeGlassLogoView(size: 60)
 
             Text("Lube")
-                .font(.custom("Monocraft", size: 30))
+                .font(T.display(30))
                 .foregroundColor(T.ink)
 
             VStack(spacing: 3) {
