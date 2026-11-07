@@ -26,7 +26,7 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
       - name: Build for Simulator
         run: |
-          xcodebuild build -project ForgeSignMobile.xcodeproj -target ForgeSignUISim -destination 'platform=iOS Simulator,id=${{ steps.simdev.outputs.udid }}' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
+          xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignUISim -destination 'platform=iOS Simulator,id=${{ steps.simdev.outputs.udid }}' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
       - name: Install, launch and screenshot
         run: |
           UDID=${{ steps.simdev.outputs.udid }}
