@@ -1,0 +1,35 @@
+name: Simulator Screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sim:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Build for Simulator
+        run: |
+          xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignMobile -destination 'generic/platform=iOS Simulator' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO
+      - name: Boot, install, launch and screenshot
+        run: |
+          UDID=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | grep -oE "[0-9A-F]{8}-[0-9A-F-]{27,}")
+          echo "Simulator UDID: $UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          APP=$(find build/DD/Build/Products -name "ForgeSignMobile.app" -path "*iphonesimulator*" | head -1)
+          echo "App: $APP"
+          xcrun simctl install "$UDID" "$APP"
+          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
+          xcrun simctl launch "$UDID" "$BID"
+          sleep 8
+          xcrun simctl io "$UDID" screenshot sim-sign.png
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simulator-Screenshots
+          path: sim-sign.png
