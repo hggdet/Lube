@@ -30,8 +30,10 @@ jobs:
       - name: Install idb
         continue-on-error: true
         run: |
-          brew install idb-companion
+          brew tap facebook/fb || true
+          brew install idb-companion || true
           pip3 install --break-system-packages fb-idb || pipx install fb-idb
+          which idb || true
           idb list-targets || true
       - name: Install app
         run: |
