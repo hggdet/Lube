@@ -31,9 +31,11 @@ jobs:
         continue-on-error: true
         run: |
           brew tap facebook/fb || true
-          brew install idb-companion || true
+          brew trust facebook/fb || true
+          HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install idb-companion || true
           pip3 install --break-system-packages fb-idb || pipx install fb-idb
           which idb || true
+          which idb_companion || true
           idb list-targets || true
       - name: Install app
         run: |
@@ -46,6 +48,7 @@ jobs:
         run: |
           UDID=${{ steps.simdev.outputs.udid }}
           mkdir -p shots
+          idb list-targets > shots/idb-status.txt 2>&1 || true
           shot() { xcrun simctl io "$UDID" screenshot "shots/$1.png"; }
           tap() { idb ui tap --udid "$UDID" "$1" "$2" || true; sleep 2; }
           swipeup() { idb ui swipe --udid "$UDID" --duration 0.6 201 620 201 300 || true; sleep 1; }
