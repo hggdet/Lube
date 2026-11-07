@@ -27,18 +27,60 @@ jobs:
       - name: Build for Simulator
         run: |
           xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignUISim -destination 'platform=iOS Simulator,id=${{ steps.simdev.outputs.udid }}' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
-      - name: Install, launch and screenshot
+      - name: Install idb
+        continue-on-error: true
+        run: |
+          brew install idb-companion
+          pip3 install --break-system-packages fb-idb || pipx install fb-idb
+          idb list-targets || true
+      - name: Install app
         run: |
           UDID=${{ steps.simdev.outputs.udid }}
           APP=$(find build/DD/Build/Products -name "ForgeSignUISim.app" -path "*iphonesimulator*" | head -1)
           echo "App: $APP"
           xcrun simctl install "$UDID" "$APP"
-          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
-          xcrun simctl launch "$UDID" "$BID"
-          sleep 8
-          xcrun simctl io "$UDID" screenshot sim-sign.png
+      - name: Drive the app
+        continue-on-error: true
+        run: |
+          UDID=${{ steps.simdev.outputs.udid }}
+          mkdir -p shots
+          shot() { xcrun simctl io "$UDID" screenshot "shots/$1.png"; }
+          tap() { idb ui tap --udid "$UDID" "$1" "$2" || true; sleep 2; }
+          swipeup() { idb ui swipe --udid "$UDID" --duration 0.6 201 620 201 300 || true; sleep 1; }
+          xcrun simctl launch "$UDID" com.forgesign.mobile.uisim
+          sleep 6
+          shot 01-sign
+          swipeup
+          shot 02-sign-mid
+          swipeup
+          shot 03-sign-bottom
+          tap 201 803
+          shot 04-sources
+          swipeup
+          shot 05-sources-scrolled
+          tap 287 803
+          shot 06-library
+          swipeup
+          shot 07-library-scrolled
+          tap 95 803
+          tap 337 378
+          sleep 2
+          shot 08-cert-picker
+          idb ui button --udid "$UDID" HOME || true
+          sleep 1
+          xcrun simctl launch "$UDID" com.forgesign.mobile.uisim || true
+          sleep 4
+          xcrun simctl ui "$UDID" appearance dark
+          sleep 1
+          shot 09-sign-dark
+          tap 201 803
+          shot 10-sources-dark
+          tap 287 803
+          shot 11-library-dark
+          ls ~/Library/Logs/DiagnosticReports/ | grep -i forge > shots/crashes.txt || echo "no crash reports" > shots/crashes.txt
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
           name: Simulator-Screenshots
-          path: sim-sign.png
+          path: shots/
+          if-no-files-found: warn
