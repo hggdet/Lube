@@ -14,7 +14,7 @@ jobs:
         run: xcodegen generate
       - name: Build for Simulator
         run: |
-          xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignMobile -destination 'generic/platform=iOS Simulator' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO
+          xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignMobile -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
       - name: Boot, install, launch and screenshot
         run: |
           UDID=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | grep -oE "[0-9A-F]{8}-[0-9A-F-]{27,}")
