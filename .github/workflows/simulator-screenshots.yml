@@ -26,11 +26,11 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
       - name: Build for Simulator
         run: |
-          xcodebuild build -project ForgeSignMobile.xcodeproj -scheme ForgeSignMobile -destination 'platform=iOS Simulator,id=${{ steps.simdev.outputs.udid }}' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
+          xcodebuild build -project ForgeSignMobile.xcodeproj -target ForgeSignUISim -destination 'platform=iOS Simulator,id=${{ steps.simdev.outputs.udid }}' -derivedDataPath build/DD CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
       - name: Install, launch and screenshot
         run: |
           UDID=${{ steps.simdev.outputs.udid }}
-          APP=$(find build/DD/Build/Products -name "ForgeSignMobile.app" -path "*iphonesimulator*" | head -1)
+          APP=$(find build/DD/Build/Products -name "ForgeSignUISim.app" -path "*iphonesimulator*" | head -1)
           echo "App: $APP"
           xcrun simctl install "$UDID" "$APP"
           BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
