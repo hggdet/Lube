@@ -53,39 +53,10 @@ struct LibraryView: View {
                 .background { ForgeBackdrop() }
                 .toolbar(.hidden, for: .navigationBar)
             }
-            .confirmationDialog(
-                activeRecord?.outputName ?? "",
-                isPresented: Binding(get: { activeRecord != nil },
-                                     set: { if !$0 { activeRecord = nil } }),
-                presenting: activeRecord
-            ) { record in
-                if history.fileExists(for: record) {
-                    Button("Install on Device") { onInstall(record) }
-                    Button("Share / Save IPA") { shareRecord = record }
-                }
-                if refreshSources.sourceURL(for: record.id) != nil {
-                    Button("Refresh — re-sign \(refreshSources.sourceName(for: record.id) ?? "the kept original")") {
-                        onRefresh(record)
-                    }
-                    Button("Drop kept original") {
-                        refreshSources.removeSource(for: record.id)
-                        history.setRefreshSourceName(nil, for: record.id)
-                    }
-                }
-                if history.fileExists(for: record) && !installCoordinator.isInstalling {
-                    Button("Delete signed IPA", role: .destructive) {
-                        deleteRecord(record)
-                    }
-                } else if !installCoordinator.isInstalling {
-                    Button("Remove from Library", role: .destructive) {
-                        deleteRecord(record)
-                    }
-                }
-            }
             .alert("Could not delete signed IPA", isPresented: $deleteError) {
                 Button("OK", role: .cancel) { deleteError = false }
             } message: {
-                Text("The file is still in ForgeSign storage. Try again after the current operation finishes.")
+                Text("The file is still in Lube storage. Try again after the current operation finishes.")
             }
             .sheet(item: $shareRecord) { record in
                 ShareSheet(items: [history.outputURL(for: record)])
@@ -178,11 +149,7 @@ struct LibraryView: View {
             activeRecord = record
         } label: {
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(spacing: 12))) {
-                Image(systemName: "app.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(T.accent2)
-                    .frame(width: 38, height: 38)
-                    .fClearGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                RecordIconView(record: record)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(record.outputName)
@@ -231,6 +198,62 @@ struct LibraryView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GlassTactileButtonStyle())
+        .popover(isPresented: Binding(
+            get: { activeRecord?.id == record.id },
+            set: { if !$0 { activeRecord = nil } }
+        )) {
+            actionMenu(record)
+        }
+    }
+
+    /// Actions for one library record, shown as a popover anchored to the
+    /// tapped row itself (not as a sheet at the bottom of the screen).
+    private func actionMenu(_ record: SigningRecord) -> some View {
+        VStack(spacing: 8) {
+            if history.fileExists(for: record) {
+                menuButton("Install on Device") {
+                    activeRecord = nil
+                    onInstall(record)
+                }
+                menuButton("Share / Save IPA") {
+                    activeRecord = nil
+                    shareRecord = record
+                }
+            }
+            if refreshSources.sourceURL(for: record.id) != nil {
+                menuButton("Refresh — re-sign \(refreshSources.sourceName(for: record.id) ?? "the kept original")") {
+                    activeRecord = nil
+                    onRefresh(record)
+                }
+                menuButton("Drop kept original") {
+                    activeRecord = nil
+                    refreshSources.removeSource(for: record.id)
+                    history.setRefreshSourceName(nil, for: record.id)
+                }
+            }
+            if !installCoordinator.isInstalling {
+                menuButton(history.fileExists(for: record) ? "Delete signed IPA" : "Remove from Library",
+                           destructive: true) {
+                    activeRecord = nil
+                    deleteRecord(record)
+                }
+            }
+        }
+        .padding(12)
+        .frame(width: 300)
+        .forgePopoverAdaptation()
+    }
+
+    private func menuButton(_ title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(T.sans(15, .medium))
+                .foregroundColor(destructive ? T.bad : T.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .fGlass(cornerRadius: 14)
+        }
+        .buttonStyle(GlassTactileButtonStyle())
     }
 
     @ViewBuilder
@@ -277,6 +300,50 @@ struct LibraryView: View {
             refreshSources.removeSource(for: record.id)
         } else {
             deleteError = true
+        }
+    }
+}
+
+private struct RecordIconView: View {
+    @EnvironmentObject private var history: HistoryStore
+    @Environment(\.forgeTheme) private var T
+    let record: SigningRecord
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "app.fill")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(T.accent2)
+            }
+        }
+        .frame(width: 38, height: 38)
+        .fClearGlass(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .task(id: history.iconIDs.contains(record.id)) {
+            if history.iconIDs.contains(record.id) {
+                image = UIImage(contentsOfFile: history.iconURL(for: record).path)
+            } else {
+                history.ensureIcon(for: record)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Forces popover presentation on iPhone where supported, so the menu
+    /// stays anchored to the tapped row instead of sliding up as a sheet.
+    @ViewBuilder
+    func forgePopoverAdaptation() -> some View {
+        if #available(iOS 16.4, *) {
+            presentationCompactAdaptation(.popover)
+        } else {
+            self
         }
     }
 }

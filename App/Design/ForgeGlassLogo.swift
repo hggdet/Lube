@@ -1,15 +1,17 @@
 import SwiftUI
 
-/// Homepage / Library header mark — the 1.1.1 "signature" glass tile
-/// (SF Symbol `signature` on colorless Liquid Glass). Matches AppIcon.
+/// Homepage / Library header mark — the +P symbol on a colorless
+/// Liquid Glass tile.
 struct ForgeGlassLogoView: View {
     var size: CGFloat = 60
 
     @Environment(\.forgeTheme) private var T
 
     var body: some View {
-        Image(systemName: "signature")
-            .font(.system(size: size * 0.40, weight: .medium))
+        Image("HeaderSymbol")
+            .resizable()
+            .scaledToFit()
+            .frame(width: size * 0.64, height: size * 0.64)
             .foregroundColor(T.accentStrong)
             .frame(width: size, height: size)
             .fClearGlass(in: RoundedRectangle(cornerRadius: size * 0.30, style: .continuous))

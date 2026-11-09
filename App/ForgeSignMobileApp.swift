@@ -50,11 +50,11 @@ private struct ForgeRootView: View {
     var body: some View {
         TabView(selection: $tab) {
             ContentView()
-                .tabItem { Label("Sign", systemImage: "signature") }
+                .tabItem { Image("TabSign") }
                 .tag(0)
 
             SourcesView()
-                .tabItem { Label("Sources", systemImage: "square.stack.3d.up") }
+                .tabItem { Image("TabSources") }
                 .tag(1)
 
             LibraryView(onInstall: { record in
@@ -76,7 +76,7 @@ private struct ForgeRootView: View {
                 }
                 tab = 0
             })
-            .tabItem { Label("Library", systemImage: "clock.arrow.circlepath") }
+            .tabItem { Image("TabLibrary") }
             .tag(2)
         }
         .tint(theme.accent)

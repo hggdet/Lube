@@ -47,7 +47,7 @@ enum AltServerProvisioningError: LocalizedError, Sendable {
         case .missingCredentials:
             return "Enter your Apple Account email and password."
         case .missingDeviceIdentifier:
-            return "Enter this iPhone or iPad’s UDID. If AltStore installed ForgeSign, reinstall this build through AltStore so it can inject the UDID automatically."
+            return "Enter this iPhone or iPad’s UDID. If AltStore installed Lube, reinstall this build through AltStore so it can inject the UDID automatically."
         case .invalidAnisetteData:
             return "The selected anisette source returned data that AltSign could not use."
         case .authenticationFailed(let detail):
@@ -61,7 +61,7 @@ enum AltServerProvisioningError: LocalizedError, Sendable {
         case .requestedTeamUnavailable(let identifier):
             return "Team \(identifier) is not available to this Apple Account. Choose a profile from an available team or use another account."
         case .certificateConflict:
-            return "This team already has a development certificate, but ForgeSign does not have its private key. ForgeSign did not revoke it because that could break AltStore and apps signed with it. Use a matching imported P12, a different Apple Account, or the manual profile mode."
+            return "This team already has a development certificate, but Lube does not have its private key. Lube did not revoke it because that could break AltStore and apps signed with it. Use a matching imported P12, a different Apple Account, or the manual profile mode."
         case .certificateCreationFailed:
             return "Apple did not return a usable development certificate and private key."
         case .deviceRegistrationFailed(let detail):

@@ -234,7 +234,7 @@ struct ContentView: View {
         VStack(spacing: T.gap) {
             ForgeGlassLogoView(size: 60)
 
-            Text("ForgeSign")
+            Text("Lube")
                 .font(T.display(30))
                 .foregroundColor(T.ink)
 
@@ -276,7 +276,7 @@ struct ContentView: View {
         let certificate = certStore.selected
         let expiry = P12Inspector.expiry(certificate?.notAfter)
         return SigningAssetRow(
-            icon: "key.fill", label: "Certificate (.p12)", value: certificate?.displayName,
+            icon: "key.fill", label: "Certificate", value: certificate?.displayName,
             status: certificate == nil ? nil : expiry.text, statusColor: expiry.tone.color(in: T)
         ) { showCertSheet = true }
     }
@@ -285,7 +285,7 @@ struct ContentView: View {
         let profile = profileStore.selected
         let expiry = P12Inspector.expiry(profile?.notAfter)
         return SigningAssetRow(
-            icon: "checkmark.seal.fill", label: "Provisioning profile", value: profile?.displayName,
+            icon: "checkmark.seal.fill", label: "Profile", value: profile?.displayName,
             status: profile == nil ? nil : expiry.text, statusColor: expiry.tone.color(in: T)
         ) { showProfileSheet = true }
     }
@@ -595,7 +595,7 @@ struct ContentView: View {
         if automaticProvisioningEnabled {
             if !isAppleAccountReady {
                 if canSignManually {
-                    return "Apple Account details are incomplete — ForgeSign will sign with the selected certificate and profile."
+                    return "Apple Account details are incomplete — Lube will sign with the selected certificate and profile."
                 }
                 return "Add a certificate and profile, or enter your Apple Account details plus an anisette source."
             }
@@ -714,8 +714,8 @@ struct ContentView: View {
               let pw = effectivePassword,
               let profile = profileStore.selected else {
             signNotice = allowAutomaticProvisioning
-                ? "Signing needs a certificate (.p12 with its password) and a provisioning profile. Add them under Input, or enter your Apple Account details under Provisioning so ForgeSign can create them."
-                : "ForgeSign could not select the certificate or profile it just created. Tap Sign again, or import a certificate and profile manually."
+                ? "Signing needs a certificate (.p12 with its password) and a provisioning profile. Add them under Input, or enter your Apple Account details under Provisioning so Lube can create them."
+                : "Lube could not select the certificate or profile it just created. Tap Sign again, or import a certificate and profile manually."
             return
         }
         let p12 = certStore.fileURL(for: cert)

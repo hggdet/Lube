@@ -40,15 +40,15 @@ struct LibraryStorageView: View {
         var detail: LocalizedStringKey {
             switch self {
             case .delivered:
-                "ForgeSign will remove signed copies already delivered to iOS. Library history and installed apps remain. These copies cannot be shared or reinstalled until you sign them again."
+                "Lube will remove signed copies already delivered to iOS. Library history and installed apps remain. These copies cannot be shared or reinstalled until you sign them again."
             case .allSigned:
-                "ForgeSign will remove every signed IPA it stores. Library history and installed apps remain. Sharing or reinstalling one will require signing it again."
+                "Lube will remove every signed IPA it stores. Library history and installed apps remain. Sharing or reinstalling one will require signing it again."
             case .downloads:
                 "Repository downloads will be removed. Apps and signed IPAs already in the Library remain. You can download these packages again."
             case .originals:
                 "Original packages kept for refresh will be removed. Refresh will require you to pick the original IPA again."
             case .staging:
-                "The currently selected IPA and injected library will be removed from ForgeSign's signing cache. Pick them again to sign."
+                "The currently selected IPA and injected library will be removed from Lube's signing cache. Pick them again to sign."
             }
         }
 
