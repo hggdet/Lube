@@ -120,7 +120,7 @@
 "missing" = "مفقود";
 "missing groups" = "المجموعات مفقودة";
 "missing profile" = "ملف التعريف مفقود";
-"New bundle ID" = "معرّف الحزمة الجديد";
+"Bundle" = "الحزمة";
 "No repositories yet" = "لا توجد مستودعات بعد";
 "No saved certificates" = "لا توجد شهادات محفوظة";
 "No saved profiles" = "لا توجد ملفات تعريف محفوظة";

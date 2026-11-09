@@ -270,7 +270,7 @@ struct GlassFileRow: View {
 
 /// Text-input row.
 struct GlassInputRow: View {
-    let icon: String
+    let icon: String?
     let label: String
     let placeholder: String
     @Binding var text: String
@@ -285,10 +285,12 @@ struct GlassInputRow: View {
             : AnyLayout(HStackLayout(spacing: 12))
         layout {
             HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(T.accent2)
-                    .frame(width: 22)
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(T.accent2)
+                        .frame(width: 22)
+                }
                 Text(NSLocalizedString(label, comment: "")).font(T.sans(15, .medium)).foregroundColor(T.ink)
             }
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }

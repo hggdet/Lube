@@ -294,7 +294,7 @@ struct ContentView: View {
 
     private var optionsSection: some View {
         GlassSection("Options") {
-            GlassInputRow(icon: "curlybraces", label: "New bundle ID", placeholder: "Optional", text: $bundleId)
+            GlassInputRow(icon: nil, label: "Bundle", placeholder: "Optional", text: $bundleId)
             GlassRowDivider()
             GlassToggleRow(label: "Remove app extensions", isOn: $removeExtensions)
             GlassRowDivider()
