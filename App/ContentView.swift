@@ -76,9 +76,9 @@ struct ContentView: View {
                             .disabled(!signer.canAcceptInput)
                         if ipaURL != nil {
                             IPAPreflightCard(state: preflightState,
-                                             certificate: certStore.selected,
-                                             profile: profileStore.selected,
-                                             audit: provisioningAudit)
+                                              certificate: certStore.selected,
+                                              profile: profileStore.selected,
+                                              audit: provisioningAudit)
                         }
                         if signer.isStaging {
                             FileCopyProgressView(title: "Importing file…", progress: signer.copyProgress,
@@ -240,7 +240,7 @@ struct ContentView: View {
 
             VStack(spacing: 3) {
                 MonoText(text: "ON-DEVICE IPA SIGNER", size: 10, weight: .semibold, color: T.ink3)
-                MonoText(text: "by Mesutcydev", size: 9, color: T.ink4)
+                MonoText(text: "By Abdul Basit Khudair", size: 9, color: T.ink4)
             }
         }
         .padding(.top, 32)
@@ -490,8 +490,6 @@ struct ContentView: View {
     // MARK: - Logic
 
     private func processPendingImports() {
-        // Keep imports queued while the native engine or inspection owns its
-        // inputs. Also handles an Open In request received before this tab mounts.
         guard signer.canAcceptInput, !isImporting else { return }
         if let request = imports.consume() {
             switch request {
@@ -506,10 +504,6 @@ struct ContentView: View {
         }
     }
 
-    /// - Parameters:
-    ///   - name: file name to stage under (a refresh's kept original is stored
-    ///     under an internal name; this keeps the output named after the app).
-    ///   - bundleID: bundle ID to sign with (a refresh reuses the installed one).
     private func stageIPA(_ source: URL, as name: String? = nil, bundleID: String? = nil) {
         guard signer.canAcceptInput, !isImporting else { return }
         isImporting = true
@@ -544,7 +538,6 @@ struct ContentView: View {
                     }
                 }
             } catch is CancellationError {
-                // Keep the previous input and its preflight result.
             } catch {
                 importError = error.localizedDescription
             }
@@ -560,7 +553,6 @@ struct ContentView: View {
                 dylibURL = try await signer.stage(source)
                 importError = nil
             } catch is CancellationError {
-                // Keep the previous optional injection.
             } catch {
                 importError = error.localizedDescription
             }
@@ -571,8 +563,6 @@ struct ContentView: View {
         if let cert = certStore.selected, let saved = certStore.savedPassword(for: cert) {
             return saved
         }
-        // An empty password is valid for an unprotected P12. The signing
-        // engine still validates the certificate before using it.
         return password
     }
 
@@ -583,8 +573,6 @@ struct ContentView: View {
             && altServer.hasAnisetteSource(plan: anisettePlan)
     }
 
-    /// Explains, under the Sign button, exactly what is still missing. The
-    /// button used to go quiet with no explanation, which read as “nothing happens”.
     private var signReadinessHint: String? {
         if signer.phase == .signing { return nil }
         if signer.phase == .provisioning { return altProvisioner.statusText }
@@ -645,8 +633,6 @@ struct ContentView: View {
         )
     }
 
-    /// Helper line under the Sign button — says what is missing instead of
-    /// leaving the user with a disabled button and no explanation.
     private func readinessHint(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "info.circle")
@@ -696,11 +682,6 @@ struct ContentView: View {
                 deviceIdentifier: altServerDeviceIdentifier
             )
             provisioningAudit = audit
-            // Apple is only contacted when the imported certificate and
-            // profiles cannot cover this IPA; a working manual setup never
-            // waits on (or fails with) Apple's sign-in service. A custom
-            // bundle ID that only the selected-profile fallback covers gets
-            // a matching profile from Apple instead.
             if isAppleAccountReady &&
                 (!canSignManually || !audit.isReady || audit.usesSelectedProfileFallback) {
                 obtainMissingProfiles(inspection: inspection,
@@ -740,8 +721,6 @@ struct ContentView: View {
             return
         }
 
-        // The audit selects a valid root profile as well as nested profiles.
-        // An unrelated selected profile must not be added back to this plan.
         let profileFiles = audit.selectedProfileIDs.compactMap { id in
             profileStore.profiles.first { $0.id == id }
         }
@@ -750,9 +729,6 @@ struct ContentView: View {
             return
         }
         let certCN = cert.commonName
-        // The profiles embedded in the result expire when the earliest of the
-        // profiles we are about to embed expires. Recorded with the library
-        // entry so refresh can tell when the app is due.
         let profileExpiry = profileFiles.compactMap(\.notAfter).min()
         let retainSource = retainRefreshSources
 
@@ -786,8 +762,6 @@ struct ContentView: View {
                                             profileExpiresAt: profileExpiry)
                 lastRecordID = record.id
                 if retainSource {
-                    // Keep the input locked until the original copy finishes.
-                    // Only the copy is cancellable; the verified IPA is retained.
                     let kept = await refreshSources.retain(ipa, for: record.id)
                     history.setRefreshSourceName(kept, for: record.id)
                     if let message = refreshSources.retentionError { signNotice = message }
@@ -829,9 +803,9 @@ struct ContentView: View {
                 let certificateFilename = "ForgeSign-\(response.teamIdentifier).p12"
                 let importedCertificate: CertificateRecord
                 switch certStore.importCertificate(data: response.certificateData,
-                                                   suggestedFilename: certificateFilename,
-                                                   password: response.certificatePassword,
-                                                   rememberPassword: true) {
+                                                 suggestedFilename: certificateFilename,
+                                                 password: response.certificatePassword,
+                                                 rememberPassword: true) {
                 case .success(let record):
                     importedCertificate = record
                 case .failure(let error):
@@ -895,8 +869,6 @@ struct ContentView: View {
                                    displayName: ipa.lastPathComponent)
     }
 
-    /// The coordinator's structured status wins; the controller's legacy string
-    /// stays as the detailed line underneath it.
     private var installStatusText: String {
         installCoordinator.statusMessage.isEmpty ? install.installStatus : installCoordinator.statusMessage
     }
