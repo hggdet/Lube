@@ -129,7 +129,7 @@ struct AutomaticProvisioningSection: View {
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Text(anisetteLabel)
+                        Text(NSLocalizedString(anisetteLabel, comment: ""))
                             .lineLimit(1)
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.system(size: 9, weight: .semibold))
@@ -220,20 +220,20 @@ struct AutomaticProvisioningSection: View {
                 Image(systemName: provisioner.phase == .idle ? "checkmark.circle" : "ellipsis.circle")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(provisioner.phase == .idle ? T.ink3 : T.accent2)
-                Text(statusLabel)
+                Text(NSLocalizedString(statusLabel, comment: ""))
                     .font(T.mono(10))
                     .foregroundColor(T.ink3)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 if let error = altServer.discoveryError {
-                    Text(error)
+                    Text(NSLocalizedString(error, comment: ""))
                         .font(T.mono(9))
                         .foregroundColor(T.bad)
                         .lineLimit(1)
                 }
             }
             if let result = altServer.anisetteCheckResult {
-                Text(result)
+                Text(NSLocalizedString(result, comment: ""))
                     .font(T.mono(9))
                     .foregroundColor(result.localizedCaseInsensitiveContains("received") ? T.good : T.bad)
                     .fixedSize(horizontal: false, vertical: true)

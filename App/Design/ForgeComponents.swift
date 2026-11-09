@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// Shared localization helpers for the glass components.
+enum ForgeLocalization {
+    /// True when the app is currently running with the Arabic localization.
+    /// Arabic script must never be letter-tracked: tracking breaks the
+    /// joining between Arabic letters in the tiny mono captions.
+    static var isArabic: Bool { Bundle.main.preferredLocalizations.first == "ar" }
+}
+
 // MARK: - Tactile press style (from SiteAgent GlassPressStyle)
 
 struct GlassTactileButtonStyle: ButtonStyle {
@@ -26,10 +34,10 @@ struct MonoText: View {
     @Environment(\.forgeTheme) private var T
 
     var body: some View {
-        Text(text)
+        Text(NSLocalizedString(text, comment: ""))
             .font(T.mono(size, weight))
             .foregroundColor(color ?? T.ink2)
-            .tracking(tracking)
+            .tracking(ForgeLocalization.isArabic ? 0 : tracking)
     }
 }
 
@@ -41,10 +49,10 @@ struct CaptionText: View {
     @Environment(\.forgeTheme) private var T
 
     var body: some View {
-        Text(text.uppercased())
+        Text(NSLocalizedString(text, comment: "").uppercased())
             .font(T.sans(11, .bold))
             .foregroundColor(color ?? T.ink3)
-            .tracking(0.4)
+            .tracking(ForgeLocalization.isArabic ? 0 : 0.4)
     }
 }
 
@@ -66,7 +74,7 @@ struct GlassPrimaryButton: View {
                     Image(systemName: systemImage)
                         .font(.system(size: 14, weight: .semibold))
                 }
-                Text(label).font(T.sans(15, .semibold))
+                Text(NSLocalizedString(label, comment: "")).font(T.sans(15, .semibold))
             }
             .foregroundColor(T.isDark ? .white : T.ink)
             .padding(.horizontal, 16)
@@ -102,7 +110,7 @@ struct GlassSecondaryButton: View {
                         .font(.system(size: 13))
                         .foregroundColor(destructive ? T.bad : T.ink)
                 }
-                Text(label).font(T.sans(13.5, .semibold))
+                Text(NSLocalizedString(label, comment: "")).font(T.sans(13.5, .semibold))
                     .foregroundColor(destructive ? T.bad : T.ink)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
@@ -180,7 +188,7 @@ struct GlassRow<Trailing: View>: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
             : AnyLayout(HStackLayout(spacing: 12))
         layout {
-            Text(label).font(T.sans(15, .medium)).foregroundColor(T.ink)
+            Text(NSLocalizedString(label, comment: "")).font(T.sans(15, .medium)).foregroundColor(T.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
             trailing()
@@ -216,14 +224,14 @@ struct SigningAssetRow: View {
                     .frame(width: 22)
                     .accessibilityHidden(true)
                 layout {
-                    Text(label)
+                    Text(NSLocalizedString(label, comment: ""))
                         .font(T.sans(15, .medium))
                         .foregroundColor(T.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     if !accessibleSize { Spacer(minLength: 8) }
                     VStack(alignment: accessibleSize ? .leading : .trailing, spacing: 4) {
                         if let status { GlassStatusPill(text: status, color: statusColor) }
-                        Text(value ?? "Choose…")
+                        Text(value ?? NSLocalizedString("Choose…", comment: ""))
                             .font(value == nil ? T.sans(13) : T.mono(12))
                             .foregroundColor(value == nil ? T.ink3 : T.ink2)
                             .lineLimit(accessibleSize ? 2 : 1)
@@ -242,9 +250,9 @@ struct SigningAssetRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GlassTactileButtonStyle())
-        .accessibilityLabel(label)
-        .accessibilityValue([value ?? "not selected", status].compactMap { $0 }.joined(separator: ", "))
-        .accessibilityHint("Double-tap to choose a file.")
+        .accessibilityLabel(NSLocalizedString(label, comment: ""))
+        .accessibilityValue([value ?? NSLocalizedString("not selected", comment: ""), status].compactMap { $0 }.joined(separator: ", "))
+        .accessibilityHint(NSLocalizedString("Double-tap to choose a file.", comment: ""))
     }
 }
 
@@ -280,14 +288,14 @@ struct GlassInputRow: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(T.accent2)
                     .frame(width: 22)
-                Text(label).font(T.sans(15, .medium)).foregroundColor(T.ink)
+                Text(NSLocalizedString(label, comment: "")).font(T.sans(15, .medium)).foregroundColor(T.ink)
             }
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
             Group {
                 if isSecure {
-                    SecureField(placeholder, text: $text)
+                    SecureField(NSLocalizedString(placeholder, comment: ""), text: $text)
                 } else {
-                    TextField(placeholder, text: $text)
+                    TextField(NSLocalizedString(placeholder, comment: ""), text: $text)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                 }
@@ -297,7 +305,7 @@ struct GlassInputRow: View {
             .foregroundColor(T.ink)
             .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .leading : .trailing)
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 170)
-            .accessibilityLabel(label)
+            .accessibilityLabel(NSLocalizedString(label, comment: ""))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -313,7 +321,7 @@ struct GlassToggleRow: View {
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            Text(label).font(T.sans(15, .medium)).foregroundColor(T.ink)
+            Text(NSLocalizedString(label, comment: "")).font(T.sans(15, .medium)).foregroundColor(T.ink)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .toggleStyle(.switch)
@@ -333,7 +341,7 @@ struct GlassStatusPill: View {
     @Environment(\.forgeTheme) private var T
 
     var body: some View {
-        Text(text.uppercased())
+        Text(NSLocalizedString(text, comment: "").uppercased())
             .font(T.mono(9, .semibold))
             .tracking(0)
             .foregroundColor(color)

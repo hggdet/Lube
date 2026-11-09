@@ -152,7 +152,7 @@ struct ContentView: View {
                 .sheet(isPresented: $showIPAImporter) {
                     ForgeDocumentPicker {
                         guard ["ipa", "zip"].contains($0.pathExtension.lowercased()) else {
-                            importError = "Choose an IPA or ZIP archive."
+                            importError = NSLocalizedString("Choose an IPA or ZIP archive.", comment: "")
                             Task { @MainActor in showIPAImporter = false }
                             return
                         }
@@ -163,7 +163,7 @@ struct ContentView: View {
                 .sheet(isPresented: $showDylibImporter) {
                     ForgeDocumentPicker {
                         guard $0.pathExtension.lowercased() == "dylib" else {
-                            importError = "Choose a .dylib file."
+                            importError = NSLocalizedString("Choose a .dylib file.", comment: "")
                             Task { @MainActor in showDylibImporter = false }
                             return
                         }
@@ -653,7 +653,7 @@ struct ContentView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(T.ink3)
                 .padding(.top, 1)
-            Text(text)
+            Text(NSLocalizedString(text, comment: ""))
                 .font(T.mono(10))
                 .foregroundColor(T.ink3)
                 .fixedSize(horizontal: false, vertical: true)

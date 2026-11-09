@@ -246,7 +246,7 @@ struct LibraryView: View {
 
     private func menuButton(_ title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
+            Text(NSLocalizedString(title, comment: ""))
                 .font(T.sans(15, .medium))
                 .foregroundColor(destructive ? T.bad : T.ink)
                 .frame(maxWidth: .infinity)

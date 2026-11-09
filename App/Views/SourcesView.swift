@@ -274,7 +274,7 @@ struct RepoDetailSheet: View {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .foregroundColor(T.ink3)
-            Text(text)
+            Text(NSLocalizedString(text, comment: ""))
                 .font(T.mono(11))
                 .foregroundColor(T.ink2)
                 .multilineTextAlignment(.center)

@@ -147,7 +147,7 @@ struct IPAPreflightCard: View {
                 .foregroundColor(color)
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(NSLocalizedString(title, comment: ""))
                     .font(T.sans(13, .semibold))
                     .foregroundColor(T.ink)
                 Text(detail)
