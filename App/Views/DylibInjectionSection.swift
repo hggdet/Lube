@@ -10,7 +10,7 @@ struct DylibInjectionSection: View {
 
     var body: some View {
         GlassSection("Dylib injection") {
-            GlassFileRow(icon: "shippingbox.fill", label: "Dylib (.dylib)", file: dylibURL) {
+            GlassFileRow(icon: "shippingbox.fill", label: "Dylib", file: dylibURL) {
                 chooseDylib()
             }
 

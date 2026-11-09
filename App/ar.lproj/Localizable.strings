@@ -68,7 +68,7 @@
 "Download progress" = "تقدّم التنزيل";
 "Download size" = "حجم التنزيل";
 "Drop kept original" = "حذف الأصل المحفوظ";
-"Dylib (.dylib)" = "Dylib ‏(.dylib)";
+"Dylib" = "Dylib";
 "Dylib injection" = "حقن Dylib";
 "Each extension and nested app needs a matching profile. A wildcard profile can cover multiple bundle IDs." = "كل إضافة وتطبيق متداخل يحتاج ملف تعريف مطابقًا. ملف التعريف العام (Wildcard) يغطي عدة معرّفات حزم.";
 "Enable Files import / sharing" = "تفعيل الاستيراد والمشاركة عبر «الملفات»";
