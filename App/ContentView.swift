@@ -296,11 +296,11 @@ struct ContentView: View {
         GlassSection("Options") {
             GlassInputRow(icon: nil, label: "Bundle", placeholder: "Optional", text: $bundleId)
             GlassRowDivider()
-            GlassToggleRow(label: "Remove app extensions", isOn: $removeExtensions)
+            GlassToggleRow(label: "Remove extensions", isOn: $removeExtensions)
             GlassRowDivider()
-            GlassToggleRow(label: "Enable Files import / sharing", isOn: $enableDocuments)
+            GlassToggleRow(label: "Files import / sharing", isOn: $enableDocuments)
             GlassRowDivider()
-            GlassToggleRow(label: "Use app's own entitlements (AltStore style)", isOn: $matchAppEntitlements)
+            GlassToggleRow(label: "App's own entitlements", isOn: $matchAppEntitlements)
         }
     }
 
