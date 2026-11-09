@@ -231,7 +231,7 @@ struct SigningAssetRow: View {
                     if !accessibleSize { Spacer(minLength: 8) }
                     VStack(alignment: accessibleSize ? .leading : .trailing, spacing: 4) {
                         if let status { GlassStatusPill(text: status, color: statusColor) }
-                        Text(value ?? NSLocalizedString("Choose…", comment: ""))
+                        Text(value ?? NSLocalizedString("Choose", comment: ""))
                             .font(value == nil ? T.sans(13) : T.mono(12))
                             .foregroundColor(value == nil ? T.ink3 : T.ink2)
                             .lineLimit(accessibleSize ? 2 : 1)
@@ -243,6 +243,7 @@ struct SigningAssetRow: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(T.ink4)
+                    .flipsForRightToLeftLayoutDirection(true)
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 16)
