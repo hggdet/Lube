@@ -192,7 +192,7 @@ struct CertificatesSheet: View {
                 Spacer(minLength: 0)
             }
 
-            SecureField("P12 password", text: $pendingPassword)
+            SecureField("Password", text: $pendingPassword)
                 .textFieldStyle(.plain)
                 .font(T.mono(13))
                 .foregroundColor(T.ink)

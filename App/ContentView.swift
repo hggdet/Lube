@@ -258,7 +258,7 @@ struct ContentView: View {
             profileRow
             GlassRowDivider()
             if let cert = certStore.selected, certStore.savedPassword(for: cert) != nil {
-                GlassRow(label: "P12 password") {
+                GlassRow(label: "Password") {
                     HStack(spacing: 8) {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 10))
@@ -267,7 +267,7 @@ struct ContentView: View {
                     }
                 }
             } else {
-                GlassInputRow(icon: "lock.fill", label: "P12 password", placeholder: "If set", text: $password, isSecure: true)
+                GlassInputRow(icon: "lock.fill", label: "Password", placeholder: "", text: $password, isSecure: true)
             }
         }
     }

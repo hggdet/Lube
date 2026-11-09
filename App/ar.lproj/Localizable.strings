@@ -135,7 +135,6 @@
 "Optional" = "اختياري";
 "Options" = "الخيارات";
 "Original packages kept for refresh will be removed. Refresh will require you to pick the original IPA again." = "ستُزال الحزم الأصلية المحفوظة لأجل التحديث. سيتطلب التحديث اختيار ملف IPA الأصلي مجددًا.";
-"P12 password" = "كلمة مرور P12";
 "Password" = "كلمة المرور";
 "Preflight" = "الفحص المسبق";
 "Preparing install…" = "جارٍ تجهيز التثبيت…";
