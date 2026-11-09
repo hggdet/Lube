@@ -9,7 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: brew install xcodegen openssl@3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare checksum-pinned signing dependencies
+        run: python3 scripts/prepare_dependencies.py
       - name: Generate project
         run: xcodegen generate
       - name: Create simulator
