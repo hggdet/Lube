@@ -10,7 +10,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: brew install xcodegen openssl@3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare checksum-pinned signing dependencies
+        run: python3 scripts/prepare_dependencies.py
 
       - name: Generate project
         run: xcodegen generate
@@ -30,10 +37,10 @@ jobs:
         run: |
           python3 scripts/package_ipa.py pack \
             build/ci-derived/Build/Products/Release-iphoneos/ForgeSign.app \
-            build/ForgeSign-2.7.ipa
+            build/ForgeSign-2.8.3.ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ForgeSign-Official-IPA
-          path: build/ForgeSign-2.7.ipa
+          path: build/ForgeSign-2.8.3.ipa
