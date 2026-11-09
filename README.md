@@ -8,7 +8,7 @@
 
 نسخة Lube من تطوير **عبدالباسط خضير (Abdul Basit)**.
 
-مبني على ForgeSign من Mesutcydev ومحرّك zsign.
+
 
 <p align="center">
   <img src="docs/screenshot-sign.jpg" width="250" alt="Lube — التوقيع" />
