@@ -28,7 +28,7 @@ struct AutomaticProvisioningSection: View {
     var body: some View {
         GlassSection("Provisioning") {
             VStack(spacing: 0) {
-                GlassToggleRow(label: "Apple Account", isOn: $isEnabled)
+                GlassToggleRow(label: "Use Apple Account provisioning", isOn: $isEnabled)
                 if isEnabled {
                     GlassRowDivider()
                     anisetteRow
@@ -60,7 +60,7 @@ struct AutomaticProvisioningSection: View {
                     GlassRowDivider()
                     statusRow
                     GlassRowDivider()
-                    MonoText(text: anisetteHint, size: 9, color: T.ink4)
+                    MonoText(text: anisetteHint, size: 9, color: T.ink3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)

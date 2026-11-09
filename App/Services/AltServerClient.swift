@@ -29,7 +29,7 @@ enum AltServerClientError: LocalizedError, Sendable {
         case .httpStatus(let status):
             return "The anisette server returned HTTP \(status). Apple may be temporarily unavailable; try again shortly."
         case .serverRejected(_, let message) where message?.localizedCaseInsensitiveContains("machineID") == true:
-            return "AltServer on macOS 27 could not create anisette data (missing machineID). Lube will use this iPhone or an anisette server instead."
+            return "AltServer on macOS 27 could not create anisette data (missing machineID). ForgeSign will use this iPhone or an anisette server instead."
         case .serverRejected(let code, let message):
             if let message, !message.isEmpty { return message }
             if let code { return "AltServer rejected the anisette request (error \(code))." }
@@ -122,6 +122,9 @@ final class AltServerClient: ObservableObject {
     @Published private(set) var lastSource: AnisetteSource?
     @Published private(set) var lastRemoteServerName: String?
     @Published private(set) var isCheckingAnisette = false
+    /// User-Agent of the client that generated the last anisette data, when the
+    /// source reported one (remote v3 servers). AltSign must send it to GrandSlam.
+    private(set) var lastAuthenticationUserAgent: String?
     @Published private(set) var anisetteCheckResult: String?
     @Published var selectedServerID: String?
 
@@ -136,12 +139,23 @@ final class AltServerClient: ObservableObject {
         let parameters = NWParameters.tcp
         parameters.includePeerToPeer = true
         let browser = NWBrowser(for: .bonjour(type: "_altserver._tcp", domain: nil), using: parameters)
+        let browserID = ObjectIdentifier(browser)
         browser.stateUpdateHandler = { [weak self] state in
             Task { @MainActor in
                 guard let self else { return }
                 switch state {
                 case .ready:
                     self.isSearching = true
+                    // Bonjour browsing never "finishes". After a short window,
+                    // stop reporting "Searching…" so the UI can say what was
+                    // (not) found; discovery keeps running, so a server that
+                    // appears later still shows up in the list.
+                    Task { @MainActor [weak self] in
+                        try? await Task.sleep(nanoseconds: 10 * 1_000_000_000)
+                        guard let self, let current = self.browser,
+                              ObjectIdentifier(current) == browserID else { return }
+                        self.isSearching = false
+                    }
                 case .failed(let error):
                     self.discoveryError = error.localizedDescription
                     self.isSearching = false
@@ -182,6 +196,7 @@ final class AltServerClient: ObservableObject {
 
     func fetchAnisetteData(plan: AnisettePreference.Plan) async throws -> [String: String] {
         var failures: [String] = []
+        lastAuthenticationUserAgent = nil
 
         // 1. A custom, user-run anisette server. An explicit choice is never
         //    silently bypassed.
@@ -192,6 +207,7 @@ final class AltServerClient: ObservableObject {
                 let result = try await RemoteAnisetteClient.fetchAnisette(from: custom)
                 lastSource = .httpServer
                 lastRemoteServerName = result.serverName
+                lastAuthenticationUserAgent = result.userAgent
                 return result.json
             } catch is CancellationError {
                 throw CancellationError()
@@ -207,6 +223,7 @@ final class AltServerClient: ObservableObject {
                 let result = try await RemoteAnisetteClient.fetchAnisette(from: server)
                 lastSource = .remoteServer
                 lastRemoteServerName = result.serverName
+                lastAuthenticationUserAgent = result.userAgent
                 return result.json
             } catch is CancellationError {
                 throw CancellationError()

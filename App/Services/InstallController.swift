@@ -26,31 +26,52 @@ final class InstallController: ObservableObject {
     }
 
     private var operation: Operation?
-    private var foregroundObserver: (any NSObjectProtocol)?
+    private var lifecycleObservers: [any NSObjectProtocol] = []
 
     private func observeForeground(for id: UUID) {
         endObservation()
-        foregroundObserver = NotificationCenter.default.addObserver(
+        let center = NotificationCenter.default
+        lifecycleObservers.append(center.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self, self.operation?.id == id, self.operation?.delivered == false else { return }
-                InstallKeepAlive.shared.stop()
+                guard let self, let operation = self.operation,
+                      operation.id == id, !operation.delivered else { return }
+                // Returning before iOS asked for any bytes means the install is
+                // still waiting on the prompt (or was abandoned): silence the
+                // keep-alive. Once the download has started it must keep
+                // running, or leaving again lets the background task expire
+                // and cancel the transfer mid-way.
+                if operation.transferFraction == 0 {
+                    InstallKeepAlive.shared.stop()
+                }
                 if self.installStatus.hasPrefix("Waiting for iOS") {
                     self.installStatus = "Waiting for iOS to request the IPA. If no install prompt appeared, try “Retry via Safari”."
                     self.emit(.awaitingSystem, self.installStatus)
                 }
             }
-        }
+        })
+        lifecycleObservers.append(center.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, let operation = self.operation,
+                      operation.id == id, !operation.delivered else { return }
+                // The server is still waiting for iOS: keep the process alive.
+                InstallKeepAlive.shared.start()
+            }
+        })
     }
 
     private func endObservation() {
-        if let foregroundObserver {
-            NotificationCenter.default.removeObserver(foregroundObserver)
-            self.foregroundObserver = nil
+        for observer in lifecycleObservers {
+            NotificationCenter.default.removeObserver(observer)
         }
+        lifecycleObservers.removeAll()
     }
 
     func install(ipa: URL, bundleId: String, version: String, recordID: UUID? = nil) {
@@ -72,12 +93,15 @@ final class InstallController: ObservableObject {
 
         let task = Task { [weak self] in
             guard let self else { return }
+            var failureContext = "starting the install service"
             do {
+                try Task.checkCancellation()
                 let server = LocalInstallServer()
                 _ = try await server.start(ipa: ipa, bundleId: bundleId, bundleVersion: version,
                                            title: ipa.deletingPathExtension().lastPathComponent)
-                try Task.checkCancellation()
-                guard self.operation?.id == id else {
+                // Cancelled while the server was starting: nothing else owns
+                // it yet, so stop it here or its listener and port leak.
+                guard !Task.isCancelled, self.operation?.id == id else {
                     server.stop()
                     return
                 }
@@ -108,7 +132,10 @@ final class InstallController: ObservableObject {
                 }
 
                 let health = URL(string: "\(server.installBaseURL)/health")!
-                let (_, healthResp) = try await URLSession.shared.data(from: health)
+                failureContext = "checking the local handoff"
+                var healthRequest = URLRequest(url: health)
+                healthRequest.timeoutInterval = 10
+                let (_, healthResp) = try await URLSession.shared.data(for: healthRequest)
                 guard self.operation?.id == id,
                       (healthResp as? HTTPURLResponse)?.statusCode == 200 else {
                     throw NSError(domain: "forgesign.install", code: 1,
@@ -119,7 +146,10 @@ final class InstallController: ObservableObject {
                     throw NSError(domain: "forgesign.install", code: 2,
                                   userInfo: [NSLocalizedDescriptionKey: "Bad remote manifest URL."])
                 }
-                let (plistData, plistResp) = try await URLSession.shared.data(from: plistURL)
+                failureContext = "fetching the install manifest"
+                let manifestSession = NetworkPolicy.makeValidatedSession()
+                defer { manifestSession.invalidateAndCancel() }
+                let (plistData, plistResp) = try await manifestSession.data(from: plistURL)
                 guard self.operation?.id == id,
                       (plistResp as? HTTPURLResponse)?.statusCode == 200,
                       NetworkPolicy.manifestIsValid(plistData,
@@ -130,6 +160,7 @@ final class InstallController: ObservableObject {
                                   userInfo: [NSLocalizedDescriptionKey: "Remote manifest server unavailable. Check network and retry."])
                 }
 
+                failureContext = "opening the iOS installer"
                 guard let itmsURL = URL(string: server.itmsServicesURL) else {
                     throw NSError(domain: "forgesign.install", code: 4,
                                   userInfo: [NSLocalizedDescriptionKey: "Bad itms-services URL."])
@@ -153,7 +184,7 @@ final class InstallController: ObservableObject {
             } catch is CancellationError {
                 self.finish(id: id, status: "Install cancelled.")
             } catch {
-                self.finish(id: id, status: "Install failed: \(error.localizedDescription)")
+                self.finish(id: id, status: "Install failed while \(failureContext): \(error.localizedDescription)")
             }
         }
         operation?.task = task
@@ -164,6 +195,20 @@ final class InstallController: ObservableObject {
         operation?.task?.cancel()
         let message = markFailed ? "Install failed: Background execution ended." : "Install cancelled."
         finish(id: id, status: message)
+    }
+
+    /// Tears down an in-flight install without surfacing terminal status.
+    /// Used when a new signing run replaces the previous install attempt:
+    /// the old operation ends silently instead of resurrecting its status
+    /// (or marking a Library record failed) under the new run.
+    func abortQuietly() {
+        guard let id = operation?.id else {
+            installStatus = ""
+            return
+        }
+        operation?.task?.cancel()
+        finish(id: id, status: nil)
+        installStatus = ""
     }
 
     private func finish(id: UUID, status: String?) {
@@ -183,9 +228,10 @@ final class InstallController: ObservableObject {
                 onProgress?(InstallationProgress(phase: .cancelled, message: status))
             }
         }
-        if let recordID = current.recordID, status?.hasPrefix("Install failed") == true {
+        if let recordID = current.recordID, !current.delivered {
+            let state: SigningRecord.InstallState = status?.hasPrefix("Install failed") == true ? .failed : .signed
             NotificationCenter.default.post(name: .forgeInstallState, object: nil,
-                                            userInfo: ["recordID": recordID, "state": SigningRecord.InstallState.failed.rawValue])
+                                            userInfo: ["recordID": recordID, "state": state.rawValue])
         }
         installServer = nil
         operation = nil

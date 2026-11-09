@@ -30,6 +30,7 @@ int forgesign_sign_ipa_profiles(const char* ipaPath,
                                 const char* tempFolder,
                                 int removeExtensions,
                                 int enableDocuments,
+                                int matchAppEntitlements,
                                 char* msgBuf,
                                 int msgBufLen,
                                 char* bundleIdBuf,
@@ -72,14 +73,6 @@ int forgesign_verify_ipa(const char* ipaPath,
                          const char* tempFolder,
                          char* msgBuf,
                          int msgBufLen);
-
-// Extracts the signed app's own icon (largest declared PNG) from an IPA
-// into outputPath so the Library can show real app icons.
-int forgesign_extract_app_icon(const char* ipaPath,
-                               const char* outputPath,
-                               const char* tempFolder,
-                               char* msgBuf,
-                               int msgBufLen);
 
 // Prepares a disposable IPA by copying a dylib into the app bundle and
 // adding its load command to the app executable and, optionally, top-level

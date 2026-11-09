@@ -23,6 +23,8 @@ struct SigningRecord: Codable, Identifiable, Equatable {
     var lastRefreshAt: Date?
     /// The transport that last delivered this app (`InstallationMethod.rawValue`).
     var installMethodRaw: String?
+    /// Set when ForgeSign intentionally removed the local signed IPA.
+    var signedCopyRemovedAt: Date?
 
     init(id: UUID = UUID(), date: Date = .now, inputName: String, outputName: String,
          bundleId: String, version: String, certificateCN: String?,
@@ -51,50 +53,28 @@ struct SigningRecord: Codable, Identifiable, Equatable {
 final class HistoryStore: ObservableObject {
     @Published private(set) var records: [SigningRecord] = []
     @Published private(set) var availableRecordIDs: Set<UUID> = []
-    /// Records whose real app icon has been extracted to disk.
-    @Published private(set) var iconIDs: Set<UUID> = []
 
     let signedDir: URL
     private let indexURL: URL
-    private var iconInFlight: Set<UUID> = []
 
-    init() {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    init(baseDirectory: URL? = nil) {
+        let base = baseDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         signedDir = base.appendingPathComponent("Signed", isDirectory: true)
         try? FileManager.default.createDirectory(at: signedDir, withIntermediateDirectories: true)
         indexURL = base.appendingPathComponent("history.json")
         load()
+        // An OTA operation cannot survive this process. Keep the verified
+        // artifact retryable instead of leaving a permanent "installing" row.
+        let interrupted = records.contains { $0.installState == .installing }
+        for index in records.indices where records[index].installState == .installing {
+            records[index].installState = .signed
+        }
+        if interrupted { save() }
         refreshFileAvailability()
-        iconIDs = Set(records.compactMap { record in
-            FileManager.default.fileExists(atPath: iconURL(for: record).path)
-                ? record.id : nil
-        })
     }
 
     func outputURL(for record: SigningRecord) -> URL {
         signedDir.appendingPathComponent(record.outputName)
-    }
-
-    func iconURL(for record: SigningRecord) -> URL {
-        signedDir.appendingPathComponent(record.id.uuidString + ".icon.png")
-    }
-
-    /// Extracts the record's real app icon from its signed IPA, once, in the
-    /// background. Rows call this when they appear without an icon.
-    func ensureIcon(for record: SigningRecord) {
-        guard !iconIDs.contains(record.id), !iconInFlight.contains(record.id) else { return }
-        guard fileExists(for: record) else { return }
-        let ipa = outputURL(for: record)
-        let destination = iconURL(for: record)
-        let id = record.id
-        iconInFlight.insert(id)
-        Task.detached(priority: .utility) {
-            let ok = AppIconService.extractIcon(from: ipa, to: destination)
-            await MainActor.run { [weak self] in
-                self?.iconInFlight.remove(id)
-                if ok { self?.iconIDs.insert(id) }
-            }
-        }
     }
 
     func uniqueOutputURL(for inputName: String) -> URL {
@@ -137,7 +117,6 @@ final class HistoryStore: ObservableObject {
         records.insert(record, at: 0)
         availableRecordIDs.insert(record.id)
         save()
-        ensureIcon(for: record)
         return record
     }
 
@@ -161,13 +140,61 @@ final class HistoryStore: ObservableObject {
         save()
     }
 
-    func delete(_ record: SigningRecord) {
-        try? FileManager.default.removeItem(at: outputURL(for: record))
-        try? FileManager.default.removeItem(at: iconURL(for: record))
+    @discardableResult
+    func delete(_ record: SigningRecord) -> Bool {
+        let output = outputURL(for: record)
+        guard output.deletingLastPathComponent().standardizedFileURL == signedDir.standardizedFileURL else {
+            return false
+        }
+        if FileManager.default.fileExists(atPath: output.path) {
+            do {
+                try FileManager.default.removeItem(at: output)
+            } catch {
+                return false
+            }
+        }
         records.removeAll { $0.id == record.id }
         availableRecordIDs.remove(record.id)
-        iconIDs.remove(record.id)
         save()
+        return true
+    }
+
+    var signedCopyBytes: Int64 {
+        StorageUsage.bytes(of: StorageUsage.files(in: signedDir, extensions: ["ipa"]))
+    }
+
+    var deliveredCopyBytes: Int64 {
+        let eligible = Set(records.filter {
+            $0.installState == .delivered || $0.installState == .installed
+        }.map(\.outputName))
+        return StorageUsage.bytes(of: StorageUsage.files(in: signedDir, extensions: ["ipa"])
+            .filter { eligible.contains($0.lastPathComponent) })
+    }
+
+    /// Removes signed archives while retaining their Library metadata. The
+    /// delivered-only mode leaves packages still needed for first install.
+    @discardableResult
+    func clearSignedCopies(deliveredOnly: Bool, now: Date = .now) -> (removed: Int, failed: Int) {
+        let eligible = Set(records.filter {
+            !deliveredOnly || $0.installState == .delivered || $0.installState == .installed
+        }.map(\.outputName))
+        var removed = 0
+        var failed = 0
+        for url in StorageUsage.files(in: signedDir, extensions: ["ipa"]) {
+            guard eligible.contains(url.lastPathComponent) || !deliveredOnly else { continue }
+            do {
+                try FileManager.default.removeItem(at: url)
+                removed += 1
+                for index in records.indices where records[index].outputName == url.lastPathComponent {
+                    records[index].signedCopyRemovedAt = now
+                    availableRecordIDs.remove(records[index].id)
+                }
+            } catch {
+                failed += 1
+            }
+        }
+        if removed > 0 { save() }
+        return (removed, failed)
     }
 
     private func load() {

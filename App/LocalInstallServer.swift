@@ -145,6 +145,13 @@ final class LocalInstallServer: @unchecked Sendable {
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int32>.size))
         var noSigPipe: Int32 = 1
         setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe, socklen_t(MemoryLayout<Int32>.size))
+        // Non-blocking listener: the accept loop polls with a timeout so stop()
+        // ends the thread promptly. A blocking accept would stay parked on a
+        // closed fd until the next connection (an fd-reuse hazard).
+        let flags = fcntl(fd, F_GETFL, 0)
+        if flags >= 0 {
+            _ = fcntl(fd, F_SETFL, flags | O_NONBLOCK)
+        }
 
         var addr = sockaddr_in()
         addr.sin_family = sa_family_t(AF_INET)
@@ -220,12 +227,34 @@ final class LocalInstallServer: @unchecked Sendable {
             let shouldRun = state.withLock { $0.running && $0.listenerFD == fd }
             guard shouldRun else { break }
 
+            var pollSet = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
+            let ready = poll(&pollSet, 1, 500)
+            guard ready > 0, pollSet.revents & Int16(POLLIN) != 0 else { continue }
+
             let client = accept(fd, nil, nil)
             if client >= 0 {
-                connectionQueue.async { [weak self] in
-                    self?.handleConnection(client)
+                // Darwin inherits O_NONBLOCK from the listener. The worker's
+                // recv/send loops require blocking sockets: an accepted TCP
+                // connection may not have sent its HTTP headers yet.
+                let flags = fcntl(client, F_GETFL, 0)
+                guard flags >= 0, fcntl(client, F_SETFL, flags & ~O_NONBLOCK) == 0 else {
+                    close(client)
+                    continue
                 }
-            } else {
+                var noSignal: Int32 = 1
+                var readTimeout = timeval(tv_sec: 15, tv_usec: 0)
+                var writeTimeout = timeval(tv_sec: 30, tv_usec: 0)
+                guard setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &noSignal, socklen_t(MemoryLayout<Int32>.size)) == 0,
+                      setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &readTimeout, socklen_t(MemoryLayout<timeval>.size)) == 0,
+                      setsockopt(client, SOL_SOCKET, SO_SNDTIMEO, &writeTimeout, socklen_t(MemoryLayout<timeval>.size)) == 0 else {
+                    close(client)
+                    continue
+                }
+                connectionQueue.async { [weak self] in
+                    guard let self else { close(client); return }
+                    self.handleConnection(client)
+                }
+            } else if errno != EAGAIN && errno != EWOULDBLOCK {
                 Thread.sleep(forTimeInterval: 0.05)
             }
         }
@@ -238,6 +267,7 @@ final class LocalInstallServer: @unchecked Sendable {
         var raw = [UInt8](repeating: 0, count: 4096)
         while buffer.count < 64 * 1024 {
             let n = recv(fd, &raw, raw.count, 0)
+            if n < 0, errno == EINTR { continue }
             if n <= 0 { return }
             buffer.append(contentsOf: raw[0..<n])
             if buffer.range(of: Data("\r\n\r\n".utf8)) != nil { break }
@@ -310,6 +340,7 @@ final class LocalInstallServer: @unchecked Sendable {
             guard let base = raw.baseAddress else { return }
             while sent < data.count {
                 let n = send(fd, base.advanced(by: sent), data.count - sent, 0)
+                if n < 0, errno == EINTR { continue }
                 if n <= 0 {
                     success = false
                     return
@@ -336,15 +367,24 @@ final class LocalInstallServer: @unchecked Sendable {
             sendResponse(fd, status: "404 Not Found", contentType: "text/plain", body: Data(), headOnly: false)
             return
         }
-        let fileSize = handle.seekToEndOfFile()
+        // The throwing FileHandle APIs report I/O errors instead of raising an
+        // Objective-C exception that would crash the app mid-install.
+        guard let fileSize = try? handle.seekToEnd() else {
+            try? handle.close()
+            sendResponse(fd, status: "500 Internal Server Error", contentType: "text/plain", body: Data(), headOnly: false)
+            return
+        }
         let resolved: (offset: UInt64, length: UInt64, headers: String, full: Bool)?
         switch range {
-        case .absent:
+        case .absent, .invalid:
+            // RFC 9110 §14.2: a Range header the server cannot use (multiple
+            // ranges, another unit) is ignored and the whole file is sent.
             resolved = (0, fileSize, "", true)
-        case .invalid:
-            resolved = nil
+        case .bounded(let start, let requestedEnd) where requestedEnd < start:
+            // "bytes=5-1" is syntactically invalid, so it is ignored as well.
+            resolved = (0, fileSize, "", true)
         case .bounded(let start, let requestedEnd):
-            guard fileSize > 0, start < fileSize, requestedEnd >= start else { resolved = nil; break }
+            guard fileSize > 0, start < fileSize else { resolved = nil; break }
             let end = min(requestedEnd, fileSize - 1)
             resolved = (start, end - start + 1, "Content-Range: bytes \(start)-\(end)/\(fileSize)\r\n", false)
         case .openEnded(let start):
@@ -363,7 +403,11 @@ final class LocalInstallServer: @unchecked Sendable {
             return
         }
 
-        handle.seek(toFileOffset: resolved.offset)
+        guard (try? handle.seek(toOffset: resolved.offset)) != nil else {
+            try? handle.close()
+            sendResponse(fd, status: "500 Internal Server Error", contentType: "text/plain", body: Data(), headOnly: false)
+            return
+        }
         let status = resolved.full ? "200 OK" : "206 Partial Content"
         var header = "HTTP/1.1 \(status)\r\nContent-Type: application/octet-stream\r\nContent-Length: \(resolved.length)\r\n"
         header += resolved.headers + "Accept-Ranges: bytes\r\nConnection: close\r\n\r\n"
@@ -371,9 +415,9 @@ final class LocalInstallServer: @unchecked Sendable {
         if headOnly { try? handle.close(); return }
 
         var remaining = resolved.length
-        while remaining > 0 {
-            let chunk = handle.readData(ofLength: Int(min(UInt64(1024 * 1024), remaining)))
-            guard !chunk.isEmpty, UInt64(chunk.count) <= remaining, sendAll(fd, chunk) else { break }
+        while remaining > 0, state.withLock({ $0.running }) {
+            guard let chunk = try? handle.read(upToCount: Int(min(UInt64(1024 * 1024), remaining))),
+                  !chunk.isEmpty, UInt64(chunk.count) <= remaining, sendAll(fd, chunk) else { break }
             let offset = resolved.offset + (resolved.length - remaining)
             remaining -= UInt64(chunk.count)
             let callbacks = state.withLock { state -> ((@Sendable (Double) -> Void)?, (@Sendable () -> Void)?, Double) in
@@ -431,7 +475,7 @@ final class LocalInstallServer: @unchecked Sendable {
         </head>
         <body><div class="bloom b1"></div><div class="bloom b2"></div><div class="card">
         <h1>Install \(safeTitle)</h1>
-        <p>Tap Install, accept the iOS prompt, then return to Lube to see whether the IPA was delivered.</p>
+        <p>Tap Install, accept the iOS prompt, then return to ForgeSign to see whether the IPA was delivered.</p>
         <a id="install" href="\(safeItms)">Install</a>
         </div>
         </body></html>
