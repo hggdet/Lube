@@ -66,13 +66,15 @@ struct ProfilesSheet: View {
                 } message: { _ in
                     Text("The provisioning profile is removed from this device.")
                 }
-                .fileImporter(isPresented: $showImporter, allowedContentTypes: [.item], allowsMultipleSelection: false) { result in
-                    guard case .success(let urls) = result, let url = urls.first else { return }
-                    guard url.pathExtension.lowercased() == "mobileprovision" else {
-                        error = "Choose a .mobileprovision file."
-                        return
+                .fullScreenCover(isPresented: $showImporter) {
+                    ForgeDocumentPicker { url in
+                        showImporter = false
+                        guard url.pathExtension.lowercased() == "mobileprovision" else {
+                            error = "Choose a .mobileprovision file."
+                            return
+                        }
+                        importProfile(from: url)
                     }
-                    importProfile(from: url)
                 }
             }
         }

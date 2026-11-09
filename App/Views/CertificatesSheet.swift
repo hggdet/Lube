@@ -72,15 +72,17 @@ struct CertificatesSheet: View {
                 } message: { _ in
                     Text("The .p12 file and its saved Keychain password are removed from this device.")
                 }
-                .fileImporter(isPresented: $showImporter, allowedContentTypes: [.item], allowsMultipleSelection: false) { result in
-                    guard case .success(let urls) = result, let url = urls.first else { return }
-                    guard ["p12", "pfx"].contains(url.pathExtension.lowercased()) else {
-                        error = "Choose a .p12 or .pfx certificate."
-                        return
+                .fullScreenCover(isPresented: $showImporter) {
+                    ForgeDocumentPicker { url in
+                        showImporter = false
+                        guard ["p12", "pfx"].contains(url.pathExtension.lowercased()) else {
+                            error = "Choose a .p12 or .pfx certificate."
+                            return
+                        }
+                        store.pendingImportURL = url
+                        pendingPassword = ""
+                        error = nil
                     }
-                    store.pendingImportURL = url
-                    pendingPassword = ""
-                    error = nil
                 }
             }
         }
