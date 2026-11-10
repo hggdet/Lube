@@ -196,7 +196,7 @@ struct AnisetteDeviceIdentity: Sendable, Equatable {
 }
 
 enum AnisetteIdentityStore {
-    private static let service = "com.hggdet.lube.mobile.remote-anisette"
+    private static let service = "com.forgesign.mobile.remote-anisette"
     private static let identityAccount = "device-identity"
     private static let provisioningAccount = "adi-pb"
 

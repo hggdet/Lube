@@ -1,6 +1,6 @@
 name: Lube
 options:
-  bundleIdPrefix: com.hggdet
+  bundleIdPrefix: com.forgesign
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
@@ -42,7 +42,7 @@ targets:
           - "third-party/minizip/zip.c"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube
+        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile
         PRODUCT_NAME: Lube
         INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: NO
@@ -85,7 +85,7 @@ targets:
       - target: LubeUISim
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile.tests
         PRODUCT_NAME: LubeTests
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1,2"
@@ -101,7 +101,7 @@ targets:
       - path: App
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube.uisim
+        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile.uisim
         PRODUCT_NAME: LubeUISim
         INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: NO

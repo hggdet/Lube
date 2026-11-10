@@ -16,7 +16,7 @@ class PackagingTests(unittest.TestCase):
         self.app.mkdir()
         (self.app / "Info.plist").write_bytes(plistlib.dumps({
             "CFBundleExecutable": "Lube", "CFBundlePackageType": "APPL",
-            "CFBundleIdentifier": "com.hggdet.lube",
+            "CFBundleIdentifier": "com.forgesign.mobile",
         }))
         self.executable = self.app / "Lube"
         self.executable.write_bytes(b"unchanged executable fixture")

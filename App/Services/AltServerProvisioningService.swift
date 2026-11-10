@@ -611,7 +611,7 @@ private final class VerificationReplyBox: @unchecked Sendable {
 #endif
 
 private enum AltServerCertificateVault {
-    private static let service = "com.hggdet.lube.mobile.altserver-certificate"
+    private static let service = "com.forgesign.mobile.altserver-certificate"
 
     static func save(_ data: Data, teamIdentifier: String) {
         delete(teamIdentifier: teamIdentifier)
