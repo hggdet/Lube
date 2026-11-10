@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lube — توقيع تطبيقات الآيفون من نفس الجهاز</title>
+<meta name="description" content="Lube يوقّع ويثبّت تطبيقات الآيفون من نفس الجهاز — بشهادة أو بحساب Apple ID، وبدون كمبيوتر.">
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07090b; --panel:rgba(255,255,255,.045); --line:rgba(190,220,190,.14);
+    --ink:#eee8cd; --dim:#a9c4ae; --mint:#7ee2a0; --mint2:#57c97e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:"Noto Kufi Arabic",system-ui,Tahoma,sans-serif;
+    background:
+      radial-gradient(900px 480px at 50% -80px, rgba(87,201,126,.16), transparent 65%),
+      radial-gradient(700px 500px at 85% 30%, rgba(87,201,126,.06), transparent 60%),
+      var(--bg);
+    color:var(--ink); line-height:1.8; overflow-x:hidden;
+  }
+  .grid-bg{position:fixed; inset:0; pointer-events:none; opacity:.5;
+    background-image:linear-gradient(rgba(180,210,180,.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(180,210,180,.05) 1px, transparent 1px);
+    background-size:54px 54px;
+    mask-image:radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);}
+  .wrap{max-width:1020px; margin:0 auto; padding:0 22px; position:relative}
+  header{padding:84px 0 10px; text-align:center}
+  .icon{width:148px; height:148px; border-radius:34px; box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 90px rgba(87,201,126,.22)}
+  h1{font-size:64px; font-weight:800; letter-spacing:.5px; margin-top:18px}
+  .tag{font-size:21px; color:var(--ink); max-width:640px; margin:6px auto 0}
+  .tag b{color:var(--mint)}
+  .cta{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:32px}
+  .btn{display:inline-block; padding:14px 34px; border-radius:999px; font-weight:700; font-size:17px; text-decoration:none; transition:.2s}
+  .btn-main{background:var(--mint); color:#0a120c}
+  .btn-main:hover{background:var(--mint2); transform:translateY(-2px)}
+  .btn-ghost{border:1px solid var(--line); color:var(--ink); background:var(--panel); backdrop-filter:blur(8px)}
+  .btn-ghost:hover{transform:translateY(-2px)}
+  .ver{margin-top:14px; color:var(--dim); font-size:14px}
+  section{padding:56px 0 8px}
+  h2{font-size:28px; font-weight:800; text-align:center; margin-bottom:26px}
+  .feats{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:22px 24px; backdrop-filter:blur(10px)}
+  .card .ic{font-size:26px}
+  .card h3{font-size:18px; margin:6px 0 2px}
+  .card p{color:var(--dim); font-size:15px}
+  .shots{display:flex; gap:18px; justify-content:center; flex-wrap:wrap}
+  .shots img{width:250px; max-width:78vw; border-radius:26px; border:1px solid var(--line); box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  .steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px}
+  .step{text-align:center; padding:24px 18px}
+  .step .n{display:inline-flex; width:44px; height:44px; border-radius:50%; border:1px solid var(--mint); color:var(--mint);
+    align-items:center; justify-content:center; font-weight:800; font-size:19px; margin-bottom:10px}
+  .step p{color:var(--dim); font-size:15px}
+  .step b{color:var(--ink)}
+  footer{margin-top:64px; border-top:1px solid var(--line); padding:28px 0 40px; text-align:center; color:var(--dim); font-size:14.5px}
+  footer a{color:var(--mint); text-decoration:none}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+
+  <header>
+    <img class="icon" src="assets/icon.png" alt="Lube">
+    <h1>Lube</h1>
+    <p class="tag">يوقّع ويثبّت تطبيقات الآيفون <b>من نفس الجهاز</b> — بشهادة أو بحساب Apple ID، <b>وبدون كمبيوتر</b>.</p>
+    <div class="cta">
+      <a class="btn btn-main" href="https://github.com/hggdet/Lube/releases/latest">تحميل أحدث نسخة</a>
+      <a class="btn btn-ghost" href="https://github.com/hggdet/Lube">المشروع على GitHub</a>
+    </div>
+    <p class="ver">النسخة 2.8.3 — بالعربية والإنجليزية</p>
+  </header>
+
+  <section>
+    <h2>شنو يسوي؟</h2>
+    <div class="feats">
+      <div class="card"><div class="ic">✍️</div><h3>توقيع كامل من الآيفون</h3><p>وقّع أي ملف IPA وثبّته مباشرة — بشهادتك ‎.p12 أو بحساب Apple ID، بدون ما تحتاج أي جهاز ثاني.</p></div>
+      <div class="card"><div class="ic">🧩</div><h3>مصادر تطبيقات</h3><p>أضف مصادر جاهزة وتصفّح تطبيقاتها وثبّت منها بنقرة وحدة.</p></div>
+      <div class="card"><div class="ic">📚</div><h3>مكتبة وتجديد</h3><p>كل تطبيقاتك الموقعة بمكان واحد، وتجديد التوقيع قبل ما ينتهي حتى ما تطفي عليك.</p></div>
+      <div class="card"><div class="ic">🌍</div><h3>عربي بالكامل</h3><p>واجهة عربية تنقلب يمين-ليسار بالكامل، وتتبع لغة جهازك تلقائيًا — ومتوفرة بالإنجليزية هم.</p></div>
+      <div class="card"><div class="ic">🪪</div><h3>تحكم كامل بالتوقيع</h3><p>تغيير معرّف التطبيق، حقن مكتبات Dylib، وإزالة الإضافات — خيارات متقدمة بيدك.</p></div>
+      <div class="card"><div class="ic">💧</div><h3>تصميم زجاجي</h3><p>واجهة Liquid Glass داكنة وسلسة، بروح iOS الحديثة.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>من داخل التطبيق</h2>
+    <div class="shots">
+      <img src="screenshot-sign.png" alt="شاشة التوقيع">
+      <img src="screenshot-sources.png" alt="شاشة المصادر">
+      <img src="screenshot-library.png" alt="شاشة المكتبة">
+    </div>
+  </section>
+
+  <section>
+    <h2>شلون تثبّته؟</h2>
+    <div class="steps">
+      <div class="card step"><span class="n">١</span><p><b>حمّل ملف IPA</b><br>من صفحة الإصدارات على GitHub.</p></div>
+      <div class="card step"><span class="n">٢</span><p><b>وقّعه وثبّته</b><br>بأداة التوقيع اللي تستخدمها وشهادتك.</p></div>
+      <div class="card step"><span class="n">٣</span><p><b>اشتغل من جهازك</b><br>افتح Lube ووقّع تطبيقاتك من نفس الآيفون.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>من تطوير عبدالباسط خضير · مبني على ForgeSign من Mesutcydev ومحرّك zsign</p>
+    <p style="margin-top:6px"><a href="https://t.me/ipafilesfor">Telegram</a> · <a href="https://github.com/hggdet/Lube">GitHub</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
