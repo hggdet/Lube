@@ -253,5 +253,5 @@ final class InstallController: ObservableObject {
 }
 
 extension Notification.Name {
-    static let forgeInstallState = Notification.Name("ForgeSign.installState")
+    static let forgeInstallState = Notification.Name("Lube.installState")
 }

@@ -105,7 +105,7 @@ enum IPAPreflightService {
               FileManager.default.isReadableFile(atPath: ipa.path) else {
             return .failure(.failed("The IPA is no longer available. Please choose it again."))
         }
-        #if !FORGE_BRIDGE
+        #if !LUBE_BRIDGE
         return .failure(.unavailable)
         #else
         var jsonBuffer = [CChar](repeating: 0, count: 32_768)
@@ -154,7 +154,7 @@ enum IPAPreflightService {
         #endif
     }
 
-    #if FORGE_BRIDGE
+    #if LUBE_BRIDGE
     private struct Payload: Decodable, Sendable {
         let appName: String
         let bundleIdentifier: String

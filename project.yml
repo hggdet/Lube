@@ -1,6 +1,6 @@
-name: ForgeSignMobile
+name: Lube
 options:
-  bundleIdPrefix: com.forgesign
+  bundleIdPrefix: com.hggdet
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
@@ -22,7 +22,7 @@ packages:
     path: vendor/AltSign
 
 targets:
-  ForgeSignMobile:
+  Lube:
     type: application
     platform: iOS
     sources:
@@ -42,16 +42,16 @@ targets:
           - "third-party/minizip/zip.c"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile
-        PRODUCT_NAME: ForgeSign
+        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube
+        PRODUCT_NAME: Lube
         INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
-        SWIFT_OBJC_BRIDGING_HEADER: Bridge/ForgeSignBridge.h
+        SWIFT_OBJC_BRIDGING_HEADER: Bridge/LubeBridge.h
         # $(inherited) keeps DEBUG in Debug builds, so the `#if DEBUG`
         # self-checks also compile into device Debug builds.
-        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) FORGE_BRIDGE
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) LUBE_BRIDGE
         CLANG_CXX_LANGUAGE_STANDARD: c++11
         CLANG_CXX_LIBRARY: libc++
         GCC_C_LANGUAGE_STANDARD: gnu11
@@ -76,17 +76,17 @@ targets:
         # explicit product copy would look for a nonexistent wrapper product.
         embed: false
 
-  ForgeSignMobileTests:
+  LubeTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: Tests
     dependencies:
-      - target: ForgeSignUISim
+      - target: LubeUISim
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile.tests
-        PRODUCT_NAME: ForgeSignMobileTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube.tests
+        PRODUCT_NAME: LubeTests
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1,2"
 
@@ -94,39 +94,39 @@ targets:
   # or Apple Account package. Signing is stubbed (see SigningService), but
   # layout, navigation and the Sources/repo networking all run in the simulator.
   # Safe to delete if you don't want a simulator preview build.
-  ForgeSignUISim:
+  LubeUISim:
     type: application
     platform: iOS
     sources:
       - path: App
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.forgesign.mobile.uisim
-        PRODUCT_NAME: ForgeSignUISim
+        PRODUCT_BUNDLE_IDENTIFIER: com.hggdet.lube.uisim
+        PRODUCT_NAME: LubeUISim
         INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
 
 schemes:
-  ForgeSignMobile:
+  Lube:
     build:
       targets:
-        ForgeSignMobile: all
+        Lube: all
 
-  ForgeSignUISim:
+  LubeUISim:
     build:
       targets:
-        ForgeSignUISim: all
+        LubeUISim: all
     run:
       config: Debug
 
-  ForgeSignMobileTests:
+  LubeTests:
     build:
       targets:
-        ForgeSignUISim: all
-        ForgeSignMobileTests: [test]
+        LubeUISim: all
+        LubeTests: [test]
     test:
       config: Debug
       targets:
-        - name: ForgeSignMobileTests
+        - name: LubeTests

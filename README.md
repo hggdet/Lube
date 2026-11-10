@@ -11,9 +11,9 @@
 
 
 <p align="center">
-  <img src="docs/screenshot-sign.jpg" width="250" alt="Lube — التوقيع" />
-  <img src="docs/screenshot-sources.jpg" width="250" alt="Lube — المصادر" />
-  <img src="docs/screenshot-library.jpg" width="250" alt="Lube — المكتبة" />
+  <img src="docs/screenshot-sign.png" width="250" alt="Lube — التوقيع" />
+  <img src="docs/screenshot-sources.png" width="250" alt="Lube — المصادر" />
+  <img src="docs/screenshot-library.png" width="250" alt="Lube — المكتبة" />
 </p>
 
 ## المميزات

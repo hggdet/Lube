@@ -43,7 +43,7 @@ final class BoundedTransfer: NSObject, URLSessionDataDelegate, @unchecked Sendab
     private let progress: @Sendable (TransferProgress) -> Void
     private let queue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "ForgeSign.bounded-transfer"
+        queue.name = "Lube.bounded-transfer"
         queue.maxConcurrentOperationCount = 1
         queue.qualityOfService = .utility
         return queue

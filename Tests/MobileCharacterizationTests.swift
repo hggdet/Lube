@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ForgeSignUISim
+@testable import LubeUISim
 
 @Suite("Mobile characterization")
 struct MobileCharacterizationTests {
@@ -11,7 +11,7 @@ struct MobileCharacterizationTests {
         #expect(manifest["UIApplicationSupportsMultipleScenes"] as? Bool == false)
     }
 
-    @Test("IPA files expose ForgeSign from the Files preview")
+    @Test("IPA files expose Lube from the Files preview")
     func ipaFilesQuickActionRegistration() throws {
         let documentTypes = try #require(
             Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]]

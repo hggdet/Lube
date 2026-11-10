@@ -28,7 +28,7 @@ extension Color {
     }
 }
 
-/// ForgeSign Colorless Glass theme — light and dark palettes.
+/// Lube Colorless Glass theme — light and dark palettes.
 ///
 /// Ported from SiteAgent's colorless glass design system: untinted clear
 /// Liquid Glass surfaces over an ambient backdrop, neutral high-contrast ink,

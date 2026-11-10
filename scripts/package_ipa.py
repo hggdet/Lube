@@ -1,4 +1,4 @@
-"""Package ForgeSign without macOS resource forks; preserve app bytes and modes."""
+"""Package Lube without macOS resource forks; preserve app bytes and modes."""
 
 import argparse
 import copy

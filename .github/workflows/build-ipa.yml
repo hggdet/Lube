@@ -25,8 +25,8 @@ jobs:
       - name: Build device Release target
         run: |
           xcodebuild build \
-            -project ForgeSignMobile.xcodeproj \
-            -scheme ForgeSignMobile \
+            -project Lube.xcodeproj \
+            -scheme Lube \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build/ci-derived \
@@ -36,11 +36,11 @@ jobs:
       - name: Package unsigned IPA
         run: |
           python3 scripts/package_ipa.py pack \
-            build/ci-derived/Build/Products/Release-iphoneos/ForgeSign.app \
-            build/ForgeSign-2.8.3.ipa
+            build/ci-derived/Build/Products/Release-iphoneos/Lube.app \
+            build/Lube-2.8.3.ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeSign-Official-IPA
-          path: build/ForgeSign-2.8.3.ipa
+          name: Lube-Official-IPA
+          path: build/Lube-2.8.3.ipa

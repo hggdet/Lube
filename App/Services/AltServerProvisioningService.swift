@@ -2,7 +2,7 @@ import Foundation
 import Security
 import UIKit
 
-#if FORGE_BRIDGE && canImport(AltSign)
+#if LUBE_BRIDGE && canImport(AltSign)
 @preconcurrency import AltSign
 
 extension ALTAccount: @retroactive @unchecked Sendable {}
@@ -136,7 +136,7 @@ final class AltServerProvisioningService: ObservableObject {
         let cleanUDID = deviceIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanUDID.isEmpty else { throw AltServerProvisioningError.missingDeviceIdentifier }
 
-        #if FORGE_BRIDGE && canImport(AltSign)
+        #if LUBE_BRIDGE && canImport(AltSign)
         defer { phase = .idle }
         phase = .connecting
         let json = try await altServer.fetchAnisetteData(plan: anisettePlan)
@@ -205,7 +205,7 @@ final class AltServerProvisioningService: ObservableObject {
                                                    session: session)
             let leaf = target.1.split(separator: ".").last.map(String.init) ?? "app"
             profiles.append(ProvisioningProviderProfile(
-                filename: "ForgeSign-\(leaf)-\(profile.uuid.uuidString).mobileprovision",
+                filename: "Lube-\(leaf)-\(profile.uuid.uuidString).mobileprovision",
                 dataBase64: profile.data.base64EncodedString()
             ))
         }
@@ -221,7 +221,7 @@ final class AltServerProvisioningService: ObservableObject {
     }
 }
 
-#if FORGE_BRIDGE && canImport(AltSign)
+#if LUBE_BRIDGE && canImport(AltSign)
 private extension AltServerProvisioningService {
     nonisolated func authenticate(appleID: String,
                                   password: String,
@@ -392,7 +392,7 @@ private extension AltServerProvisioningService {
             throw AltServerProvisioningError.certificateConflict
         }
         let created: ALTCertificate = try await withCheckedThrowingContinuation { continuation in
-            ALTAppleAPI.shared.addCertificate(machineName: "ForgeSign - \(deviceName)",
+            ALTAppleAPI.shared.addCertificate(machineName: "Lube - \(deviceName)",
                                               to: team,
                                               session: session) { certificate, error in
                 if let certificate {
@@ -544,7 +544,7 @@ private extension AltServerProvisioningService {
                 continue
             }
             let created: ALTAppGroup = try await withCheckedThrowingContinuation { continuation in
-                ALTAppleAPI.shared.addAppGroup(withName: "ForgeSign " + requested.replacingOccurrences(of: ".", with: " "),
+                ALTAppleAPI.shared.addAppGroup(withName: "Lube " + requested.replacingOccurrences(of: ".", with: " "),
                                                groupIdentifier: resolved,
                                                team: team,
                                                session: session) { group, error in
@@ -588,7 +588,7 @@ private extension AltServerProvisioningService {
 
     nonisolated static func appIDName(for bundle: ProvisioningProviderBundle) -> String {
         let leaf = bundle.resolvedBundleIdentifier.split(separator: ".").last.map(String.init) ?? "App"
-        return "ForgeSign \(bundle.kind.displayName) \(leaf)"
+        return "Lube \(bundle.kind.displayName) \(leaf)"
     }
 }
 
@@ -611,7 +611,7 @@ private final class VerificationReplyBox: @unchecked Sendable {
 #endif
 
 private enum AltServerCertificateVault {
-    private static let service = "com.forgesign.mobile.altserver-certificate"
+    private static let service = "com.hggdet.lube.mobile.altserver-certificate"
 
     static func save(_ data: Data, teamIdentifier: String) {
         delete(teamIdentifier: teamIdentifier)

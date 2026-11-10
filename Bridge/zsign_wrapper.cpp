@@ -234,7 +234,7 @@ static bool FSValidateExtractedIPA(const string& folder, string& appFolder, stri
     return true;
 }
 
-// ForgeSign on-device signing bridge.
+// Lube on-device signing bridge.
 // Signs an IPA using zsign (userspace codesign) with a .p12 + password + profile.
 // Returns 0 on success, non-zero on failure. Writes a short status message into
 // msgBuf (NUL-terminated) for the UI.

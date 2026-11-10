@@ -28,7 +28,7 @@ final class SigningService: ObservableObject {
 
     init(workDirectory: URL? = nil) {
         let base = workDirectory ?? FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("ForgeSign", isDirectory: true)
+            .appendingPathComponent("Lube", isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
         workDir = base
         tempDir = base.appendingPathComponent("tmp", isDirectory: true)
@@ -129,7 +129,7 @@ final class SigningService: ObservableObject {
                       removeExtensions: Bool, enableDocuments: Bool,
                       matchAppEntitlements: Bool = false)
         -> (ok: Bool, message: String, signedBundleId: String, signedVersion: String) {
-        #if !FORGE_BRIDGE
+        #if !LUBE_BRIDGE
         // UI-preview builds (e.g. the simulator target) omit the zsign engine.
         return (false, "Signing engine unavailable in this build.", "", "1.0")
         #else
@@ -158,7 +158,7 @@ final class SigningService: ObservableObject {
     }
 
     nonisolated static func verify(ipa: URL, temporaryDirectory: URL) -> (ok: Bool, message: String) {
-        #if !FORGE_BRIDGE
+        #if !LUBE_BRIDGE
         return (false, "Signed IPA verification is unavailable in this build.")
         #else
         var messageBuffer = [CChar](repeating: 0, count: 1024)
@@ -176,7 +176,7 @@ final class SigningService: ObservableObject {
 
     nonisolated static func validateSigningAsset(p12: URL, password: String, profile: URL)
         -> (ok: Bool, message: String) {
-        #if !FORGE_BRIDGE
+        #if !LUBE_BRIDGE
         return (true, "Validation is deferred to the device signing engine.")
         #else
         var messageBuffer = [CChar](repeating: 0, count: 512)

@@ -1,5 +1,5 @@
-#ifndef ForgeSignBridge_h
-#define ForgeSignBridge_h
+#ifndef LubeBridge_h
+#define LubeBridge_h
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,4 +100,4 @@ const char* forgesign_zsign_version(void);
 }
 #endif
 
-#endif /* ForgeSignBridge_h */
+#endif /* LubeBridge_h */

@@ -101,7 +101,7 @@ final class LocalInstallServer: @unchecked Sendable {
 
     private let state = OSAllocatedUnfairLock(initialState: State())
     private let connectionQueue = DispatchQueue(
-        label: "com.forgesign.installserver.connections",
+        label: "com.hggdet.lube.installserver.connections",
         qos: .userInitiated,
         attributes: .concurrent
     )

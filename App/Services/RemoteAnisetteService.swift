@@ -4,7 +4,7 @@ import Security
 
 // MARK: - Remote anisette servers
 //
-// ForgeSign can obtain Apple sign-in (anisette) data without a local Mac:
+// Lube can obtain Apple sign-in (anisette) data without a local Mac:
 // a community anisette server performs the ADI provisioning handshake and
 // returns the machine ID / one-time password Apple expects. The protocol is
 // the same one AltStore Classic ("no computer") and SideStore use:
@@ -62,7 +62,7 @@ enum RemoteAnisetteCatalog {
         ("ethxn (omnisette)", "https://omni.ethxn.xyz")
     ].compactMap { RemoteAnisetteServer(name: $0.0, address: $0.1) }
 
-    /// Upstream list ForgeSign can refresh itself from.
+    /// Upstream list Lube can refresh itself from.
     static let publishedListURL = URL(string: "https://raw.githubusercontent.com/SideStore/anisette-servers/main/servers.json")!
 
     private static let storedServersKey = "forgesign.anisette.serverList"
@@ -196,7 +196,7 @@ struct AnisetteDeviceIdentity: Sendable, Equatable {
 }
 
 enum AnisetteIdentityStore {
-    private static let service = "com.forgesign.mobile.remote-anisette"
+    private static let service = "com.hggdet.lube.mobile.remote-anisette"
     private static let identityAccount = "device-identity"
     private static let provisioningAccount = "adi-pb"
 
@@ -420,7 +420,7 @@ enum RemoteAnisetteClient {
         return json
     }
 
-    /// Assembles the AltSign-shaped anisette dictionary ForgeSign signs in with.
+    /// Assembles the AltSign-shaped anisette dictionary Lube signs in with.
     /// Returns nil when the required machine ID / one-time password are missing.
     static func anisetteJSON(identity: AnisetteDeviceIdentity,
                              machineID: String,

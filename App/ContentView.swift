@@ -800,7 +800,7 @@ struct ContentView: View {
                     importedCertificateData: importedCertificateData,
                     importedCertificatePassword: importedCertificatePassword
                 )
-                let certificateFilename = "ForgeSign-\(response.teamIdentifier).p12"
+                let certificateFilename = "Lube-\(response.teamIdentifier).p12"
                 let importedCertificate: CertificateRecord
                 switch certStore.importCertificate(data: response.certificateData,
                                                  suggestedFilename: certificateFilename,

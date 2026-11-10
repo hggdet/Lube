@@ -129,7 +129,7 @@ final class AltServerClient: ObservableObject {
     @Published var selectedServerID: String?
 
     private var browser: NWBrowser?
-    private let queue = DispatchQueue(label: "com.forgesign.altserver.discovery", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.hggdet.lube.altserver.discovery", qos: .userInitiated)
 
     func startSearching() {
         guard browser == nil else { return }
@@ -331,7 +331,7 @@ final class AltServerClient: ObservableObject {
 
 private final class AltServerConnection: @unchecked Sendable {
     private let connection: NWConnection
-    private let queue = DispatchQueue(label: "com.forgesign.altserver.connection", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.hggdet.lube.altserver.connection", qos: .userInitiated)
     private(set) var resolvedHost: String?
 
     init(endpoint: NWEndpoint) {

@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Refresh capability
 //
-// Refresh is not "reinstall": it re-uses ForgeSign's signing pipeline and then
+// Refresh is not "reinstall": it re-uses Lube's signing pipeline and then
 // installs the result as an *upgrade* so the app's data survives. It is only
 // offered when every input it needs is actually present; otherwise the Library
 // says what is missing instead of pretending it will happen automatically.

@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 import Testing
-@testable import ForgeSignUISim
+@testable import LubeUISim
 
 @Suite("Loopback install HTTP", .timeLimit(.minutes(1)))
 struct LoopbackInstallServerTests {

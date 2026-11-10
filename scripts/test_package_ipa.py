@@ -12,31 +12,31 @@ class PackagingTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.app = self.root / "ForgeSign.app"
+        self.app = self.root / "Lube.app"
         self.app.mkdir()
         (self.app / "Info.plist").write_bytes(plistlib.dumps({
-            "CFBundleExecutable": "ForgeSign", "CFBundlePackageType": "APPL",
-            "CFBundleIdentifier": "com.forgesign.mobile",
+            "CFBundleExecutable": "Lube", "CFBundlePackageType": "APPL",
+            "CFBundleIdentifier": "com.hggdet.lube",
         }))
-        self.executable = self.app / "ForgeSign"
+        self.executable = self.app / "Lube"
         self.executable.write_bytes(b"unchanged executable fixture")
         self.executable.chmod(0o755)
         self.source = self.root / "original.ipa"
 
     def test_pack_filters_metadata_and_preserves_mode(self):
-        (self.app / "._ForgeSign").write_bytes(b"resource fork")
+        (self.app / "._Lube").write_bytes(b"resource fork")
         (self.app / ".DS_Store").write_bytes(b"finder metadata")
         package_app(self.app, self.source)
         with zipfile.ZipFile(self.source) as archive:
             self.assertEqual(set(archive.namelist()), {
-                "Payload/ForgeSign.app/ForgeSign", "Payload/ForgeSign.app/Info.plist"})
-            self.assertEqual(archive.getinfo("Payload/ForgeSign.app/ForgeSign").external_attr >> 16 & 0o777, 0o755)
+                "Payload/Lube.app/Lube", "Payload/Lube.app/Info.plist"})
+            self.assertEqual(archive.getinfo("Payload/Lube.app/Lube").external_attr >> 16 & 0o777, 0o755)
 
     def test_repack_removes_payload_decoy_without_changing_app(self):
         package_app(self.app, self.source)
         with zipfile.ZipFile(self.source, "a") as archive:
-            archive.writestr("Payload/._ForgeSign.app", b"resource fork")
-            archive.writestr("Payload/ForgeSign.app/._Info.plist", b"resource fork")
+            archive.writestr("Payload/._Lube.app", b"resource fork")
+            archive.writestr("Payload/Lube.app/._Info.plist", b"resource fork")
             archive.writestr("__MACOSX/._Payload", b"resource fork")
         with self.assertRaisesRegex(ValueError, "metadata"):
             validate_ipa(self.source)

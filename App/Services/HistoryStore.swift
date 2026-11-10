@@ -23,7 +23,7 @@ struct SigningRecord: Codable, Identifiable, Equatable {
     var lastRefreshAt: Date?
     /// The transport that last delivered this app (`InstallationMethod.rawValue`).
     var installMethodRaw: String?
-    /// Set when ForgeSign intentionally removed the local signed IPA.
+    /// Set when Lube intentionally removed the local signed IPA.
     var signedCopyRemovedAt: Date?
 
     init(id: UUID = UUID(), date: Date = .now, inputName: String, outputName: String,

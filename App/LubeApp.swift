@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ForgeSignMobileApp: App {
+struct LubeMobileApp: App {
     @StateObject private var certificates = CertificateStore()
     @StateObject private var profiles = ProfileStore()
     @StateObject private var history = HistoryStore()

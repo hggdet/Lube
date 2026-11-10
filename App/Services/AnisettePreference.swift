@@ -1,6 +1,6 @@
 import Foundation
 
-/// Where ForgeSign is allowed to obtain anisette data (the Apple sign-in
+/// Where Lube is allowed to obtain anisette data (the Apple sign-in
 /// material AltSign needs). The order is always most-specific first, and every
 /// mode keeps a working fallback so sign-in never dead-ends.
 enum AnisetteMode: String, CaseIterable, Identifiable, Sendable {

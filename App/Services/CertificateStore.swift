@@ -219,7 +219,7 @@ final class CertificateStore: ObservableObject {
 /// device-bound Keychain; when Keychain storage is unavailable, remembering is
 /// refused and the password must remain in memory for the current signing pass.
 enum PasswordVault {
-    private static let service = "com.forgesign.mobile.p12"
+    private static let service = "com.hggdet.lube.mobile.p12"
 
     static func save(_ password: String, for id: UUID) -> Bool {
         delete(for: id)

@@ -9,7 +9,7 @@
 #include <string.h>
 
 static NSData *p12Data(EVP_PKEY *key, X509 *certificate, BOOL legacy) {
-    PKCS12 *container = PKCS12_create("fixture-pass", "ForgeSign fixture", key, certificate, NULL,
+    PKCS12 *container = PKCS12_create("fixture-pass", "Lube fixture", key, certificate, NULL,
         legacy ? NID_pbe_WithSHA1And3_Key_TripleDES_CBC : 0,
         legacy ? NID_pbe_WithSHA1And40BitRC2_CBC : 0, 2048, 2048, 0);
     assert(container);
@@ -36,7 +36,7 @@ int main(void) {
         assert(X509_set_pubkey(certificate, key));
         X509_NAME *name = X509_get_subject_name(certificate);
         assert(X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
-            (unsigned char *)"ForgeSign fixture", -1, -1, 0));
+            (unsigned char *)"Lube fixture", -1, -1, 0));
         assert(X509_set_issuer_name(certificate, name));
         assert(X509_sign(certificate, key, EVP_sha256()));
 
@@ -44,7 +44,7 @@ int main(void) {
             NSData *data = p12Data(key, certificate, legacy.boolValue);
             ALTCertificate *parsed = [[ALTCertificate alloc] initWithP12Data:data password:@"fixture-pass"];
             assert(parsed && parsed.data.length && parsed.privateKey.length);
-            assert([parsed.name isEqualToString:@"ForgeSign fixture"]);
+            assert([parsed.name isEqualToString:@"Lube fixture"]);
             assert(![[ALTCertificate alloc] initWithP12Data:data password:@"incorrect"]);
             NSData *roundtrip = [parsed encryptedP12DataWithPassword:@"roundtrip"];
             assert(roundtrip.length);
@@ -53,7 +53,7 @@ int main(void) {
         assert(![[ALTCertificate alloc] initWithP12Data:[NSData data] password:nil]);
         assert(![[ALTCertificate alloc] initWithP12Data:[@"invalid P12" dataUsingEncoding:NSUTF8StringEncoding] password:nil]);
 
-        const char *payload = "ForgeSign CMS fixture";
+        const char *payload = "Lube CMS fixture";
         BIO *input = BIO_new_mem_buf(payload, (int)strlen(payload));
         CMS_ContentInfo *cms = CMS_sign(certificate, key, NULL, input, CMS_BINARY);
         BIO *verified = BIO_new(BIO_s_mem());

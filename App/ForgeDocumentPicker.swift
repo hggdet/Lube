@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 /// The type filter here is deliberately maximal (`.item` = every item). The
 /// "picker opens but nothing is selectable" symptom on sideloaded builds is
 /// NOT caused by this filter — even `.item`/`.data` (everything) shows it, and
-/// apps *signed by* ForgeSign hit the same thing without ever using this view.
+/// apps *signed by* Lube hit the same thing without ever using this view.
 /// That points at the entitlements applied via the provisioning profile, not
 /// the picker. Keep this simple; do not reintroduce custom UTI strings or the
 /// deprecated `documentTypes:in:` initializer (they only add fragility).

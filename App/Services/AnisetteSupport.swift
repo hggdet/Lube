@@ -166,7 +166,7 @@ enum OnDeviceAnisette {
 
         // Do not use Dictionary(uniqueKeysWithValues:) here. AuthKit may
         // expose equivalent header keys with different casing/types; that
-        // initializer traps on a collision and would terminate ForgeSign
+        // initializer traps on a collision and would terminate Lube
         // while the AltServer flow is starting.
         var rawHeaders: [String: Any] = [:]
         for (key, value) in headers {

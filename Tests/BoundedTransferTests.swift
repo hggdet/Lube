@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ForgeSignUISim
+@testable import LubeUISim
 
 @Suite("Bounded repository transfers", .timeLimit(.minutes(1)))
 struct BoundedTransferTests {

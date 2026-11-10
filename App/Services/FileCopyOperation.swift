@@ -18,7 +18,7 @@ final class FileCopyOperation: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "ForgeSign.file-copy", qos: .utility)
+    private let queue = DispatchQueue(label: "Lube.file-copy", qos: .utility)
     private let lock = NSLock()
     private var cancelled = false
     private let progress: @Sendable (TransferProgress) -> Void

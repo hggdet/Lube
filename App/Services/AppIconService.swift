@@ -5,7 +5,7 @@ import Foundation
 enum AppIconService {
     /// Writes the icon PNG to `destination`. Returns true on success.
     static func extractIcon(from ipa: URL, to destination: URL) -> Bool {
-        #if FORGE_BRIDGE
+        #if LUBE_BRIDGE
         var messageBuffer = [CChar](repeating: 0, count: 512)
         let status = forgesign_extract_app_icon(
             ipa.path,

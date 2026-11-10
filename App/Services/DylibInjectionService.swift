@@ -14,7 +14,7 @@ enum DylibInjectionService {
                         output: URL,
                         temporaryDirectory: URL,
                         injectIntoExtensions: Bool) -> Result<Void, Error> {
-        #if !FORGE_BRIDGE
+        #if !LUBE_BRIDGE
         return .failure(BridgeError(message: "Dylib injection is unavailable in this UI-preview build."))
         #else
         var messageBuffer = [CChar](repeating: 0, count: 1024)

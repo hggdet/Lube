@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ForgeSignUISim
+@testable import LubeUISim
 
 @Suite("Atomic background copies")
 struct FileCopyOperationTests {

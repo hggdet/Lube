@@ -34,7 +34,7 @@ struct SigningFailure: LocalizedError, Sendable {
 }
 
 enum SigningWorker {
-    private static let queue = DispatchQueue(label: "ForgeSign.signing", qos: .userInitiated)
+    private static let queue = DispatchQueue(label: "Lube.signing", qos: .userInitiated)
 
     static func run(_ request: SigningRequest) async -> Result<SignedOutput, SigningFailure> {
         await withCheckedContinuation { continuation in

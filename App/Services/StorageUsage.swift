@@ -1,6 +1,6 @@
 import Foundation
 
-/// Reads only files owned by one ForgeSign storage directory. Directory scans
+/// Reads only files owned by one Lube storage directory. Directory scans
 /// happen on appearance or after a storage change, not while rows render.
 enum StorageUsage {
     static func files(in directory: URL, extensions: Set<String>) -> [URL] {

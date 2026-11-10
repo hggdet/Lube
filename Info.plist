@@ -74,7 +74,7 @@
 		<string>_altserver._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>ForgeSign connects to AltServer on your local network for Apple account provisioning.</string>
+	<string>Lube connects to AltServer on your local network for Apple account provisioning.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -124,9 +124,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>ForgeSign dynamic library</string>
+			<string>Lube dynamic library</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.forgesign.dylib</string>
+			<string>com.hggdet.lube.dylib</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -139,9 +139,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>ForgeSign provisioning profile</string>
+			<string>Lube provisioning profile</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.forgesign.mobileprovision</string>
+			<string>com.hggdet.lube.mobileprovision</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -154,9 +154,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>ForgeSign signing certificate</string>
+			<string>Lube signing certificate</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.forgesign.p12</string>
+			<string>com.hggdet.lube.p12</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

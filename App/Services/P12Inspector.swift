@@ -29,7 +29,7 @@ enum ExpiryTone {
 /// framework is the fallback where the bridge is unavailable.
 enum P12Inspector {
     static func inspect(url: URL, password: String) -> P12Info? {
-        #if FORGE_BRIDGE
+        #if LUBE_BRIDGE
         if let info = inspectViaEngine(url: url, password: password) {
             return info
         }
@@ -37,7 +37,7 @@ enum P12Inspector {
         return inspectViaSecurity(url: url, password: password)
     }
 
-    #if FORGE_BRIDGE
+    #if LUBE_BRIDGE
     private static func inspectViaEngine(url: URL, password: String) -> P12Info? {
         var cnBuf = [CChar](repeating: 0, count: 256)
         var oBuf = [CChar](repeating: 0, count: 256)

@@ -323,7 +323,7 @@ final class ProfileStore: ObservableObject {
 }
 
 /// Parses the plist embedded inside a signed .mobileprovision blob and pulls
-/// out the identity, coverage, and expiry fields ForgeSign surfaces. The CMS
+/// out the identity, coverage, and expiry fields Lube surfaces. The CMS
 /// signature itself is not verified here — zsign validates the profile when
 /// signing.
 struct ProvisioningProfileMetadata: Equatable, Sendable {
