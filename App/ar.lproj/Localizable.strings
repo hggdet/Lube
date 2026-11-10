@@ -208,3 +208,5 @@
 "wrong certificate" = "الشهادة غير صحيحة";
 "wrong device" = "الجهاز غير صحيح";
 "wrong team" = "الفريق غير صحيح";
+"This app will be signed with the profile's app ID (%@)." = "سيُوقَّع هذا التطبيق بمعرّف البروفايل (%@) — لأن بروفايلك يغطي هذا المعرّف فقط.";
+"Paired" = "مقترن بالشهادة";

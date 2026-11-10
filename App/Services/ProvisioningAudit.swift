@@ -134,6 +134,44 @@ enum ProvisioningAuditService {
         return ProvisioningAudit(rows: rows, selectedProfileIDs: orderedIDs)
     }
 
+    /// True when at least one imported profile covers this bundle ID.
+    static func anyProfileMatches(profiles: [ProfileRecord], bundleID: String) -> Bool {
+        profiles.contains { profileMatchesBundleID($0, bundleID: bundleID) }
+    }
+
+    /// The app ID a profile grants when it names exactly one ID (no
+    /// wildcard), with the team prefix stripped — e.g. a reseller profile
+    /// that only ever covers `app.example.single`.
+    static func fixedAppID(of profile: ProfileRecord) -> String? {
+        guard let raw = profile.applicationIdentifier?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty, !raw.contains("*"),
+              let separator = raw.firstIndex(of: ".") else { return nil }
+        let id = String(raw[raw.index(after: separator)...])
+        return id.isEmpty ? nil : id
+    }
+
+    /// True when the profile belongs to the certificate: same team, and —
+    /// when the profile lists its developer certificates — the certificate's
+    /// fingerprint is one of them. Mirrors the audit's own team/certificate
+    /// checks so pairing never contradicts a signing verdict.
+    static func profilePairs(profile: ProfileRecord, certificate: CertificateRecord?) -> Bool {
+        guard let certificate else { return false }
+        if let certificateTeam = certificate.teamID,
+           let profileTeam = profile.teamID,
+           certificateTeam.caseInsensitiveCompare(profileTeam) != .orderedSame {
+            return false
+        }
+        if let fingerprint = certificate.certificateSHA256,
+           !profile.developerCertificateSHA256.isEmpty,
+           !profile.developerCertificateSHA256.contains(where: {
+               $0.caseInsensitiveCompare(fingerprint) == .orderedSame
+           }) {
+            return false
+        }
+        return true
+    }
+
     static var currentDeviceIdentifier: String? {
         let keys = ["ALTDeviceID", "ALTDeviceIdentifier"]
         for key in keys {

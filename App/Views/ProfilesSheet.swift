@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 /// .mobileprovision files directly — no password, just saved on-device.
 struct ProfilesSheet: View {
     @EnvironmentObject private var store: ProfileStore
+    @EnvironmentObject private var certStore: CertificateStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.forgeTheme) private var T
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -157,6 +158,9 @@ struct ProfilesSheet: View {
                     }
                 }
                 if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                if ProvisioningAuditService.profilePairs(profile: profile, certificate: certStore.selected) {
+                    GlassStatusPill(text: NSLocalizedString("Paired", comment: ""), color: T.accent)
+                }
                 GlassStatusPill(text: expiry.text, color: expiry.tone.color(in: T))
             }
             .padding(.horizontal, 16)

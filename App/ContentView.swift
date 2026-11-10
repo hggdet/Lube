@@ -201,8 +201,14 @@ struct ContentView: View {
                 .onChange(of: signer.activeInputChecks) { _ in processPendingImports() }
                 .onChange(of: profileStore.profiles) { _ in refreshProvisioningAudit() }
                 .onChange(of: profileStore.isRefreshingMetadata) { _ in refreshProvisioningAudit() }
-                .onChange(of: profileStore.selectedID) { _ in refreshProvisioningAudit() }
-                .onChange(of: certStore.selectedID) { _ in refreshProvisioningAudit() }
+                .onChange(of: profileStore.selectedID) { _ in
+                    syncPairingFromProfile()
+                    refreshProvisioningAudit()
+                }
+                .onChange(of: certStore.selectedID) { _ in
+                    syncPairingFromCertificate()
+                    refreshProvisioningAudit()
+                }
                 .onChange(of: bundleId) { _ in refreshProvisioningAudit() }
                 .onChange(of: removeExtensions) { _ in refreshProvisioningAudit() }
                 .onChange(of: automaticProvisioningEnabled) { _ in refreshProvisioningAudit() }
@@ -295,6 +301,21 @@ struct ContentView: View {
     private var optionsSection: some View {
         GlassSection("Options") {
             GlassInputRow(icon: nil, label: "Bundle", placeholder: "Optional", text: $bundleId)
+            if let autoID = autoAppliedProfileID {
+                GlassRowDivider()
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(T.ink3)
+                        .padding(.top, 1)
+                    Text(String(format: NSLocalizedString("This app will be signed with the profile's app ID (%@).", comment: ""), autoID))
+                        .font(T.mono(10))
+                        .foregroundColor(T.ink3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 4)
+            }
             GlassRowDivider()
             GlassToggleRow(label: "Remove extensions", isOn: $removeExtensions)
             GlassRowDivider()
@@ -605,6 +626,62 @@ struct ContentView: View {
         return canSignManually || (isAppleAccountReady && inspectionReady)
     }
 
+    /// The bundle ID signing should actually use. When the field is empty
+    /// and no imported profile covers the app's own ID, a selected profile
+    /// that grants exactly one fixed app ID lends that ID to the app — the
+    /// same substitution signing websites perform — so the app signs and
+    /// installs instead of stopping at a missing-profile error.
+    private func effectiveBundleID(for inspection: IPAPreflight) -> String {
+        let typed = bundleId.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typed.isEmpty { return bundleId }
+        if ProvisioningAuditService.anyProfileMatches(profiles: profileStore.profiles,
+                                                      bundleID: inspection.bundleIdentifier) {
+            return bundleId
+        }
+        if let selected = profileStore.selected,
+           let fixed = ProvisioningAuditService.fixedAppID(of: selected) {
+            return fixed
+        }
+        return bundleId
+    }
+
+    /// The profile app ID currently being lent to the staged IPA, if any —
+    /// shown in Options so the substitution is never silent.
+    private var autoAppliedProfileID: String? {
+        guard case .ready(let inspection) = preflightState,
+              bundleId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !ProvisioningAuditService.anyProfileMatches(profiles: profileStore.profiles,
+                                                          bundleID: inspection.bundleIdentifier),
+              let selected = profileStore.selected else { return nil }
+        return ProvisioningAuditService.fixedAppID(of: selected)
+    }
+
+    /// Keep the certificate and profile selections paired: when one side
+    /// changes and the current counterpart does not belong to it, select
+    /// the imported counterpart that does (same team, certificate listed
+    /// in the profile).
+    private func syncPairingFromCertificate() {
+        guard let certificate = certStore.selected else { return }
+        if let current = profileStore.selected,
+           ProvisioningAuditService.profilePairs(profile: current, certificate: certificate) { return }
+        if let paired = profileStore.profiles.first(where: {
+            ProvisioningAuditService.profilePairs(profile: $0, certificate: certificate)
+        }) {
+            profileStore.select(paired.id)
+        }
+    }
+
+    private func syncPairingFromProfile() {
+        guard let profile = profileStore.selected else { return }
+        if let current = certStore.selected,
+           ProvisioningAuditService.profilePairs(profile: profile, certificate: current) { return }
+        if let paired = certStore.certificates.first(where: {
+            ProvisioningAuditService.profilePairs(profile: profile, certificate: $0)
+        }) {
+            certStore.select(paired.id)
+        }
+    }
+
     private func refreshProvisioningAudit(_ inspection: IPAPreflight? = nil) {
         guard !profileStore.isRefreshingMetadata else {
             provisioningAudit = nil
@@ -625,7 +702,7 @@ struct ContentView: View {
             profiles: profileStore.profiles,
             preferredProfileID: profileStore.selectedID,
             certificate: certStore.selected,
-            requestedBundleID: bundleId,
+            requestedBundleID: effectiveBundleID(for: resolvedInspection),
             removeExtensions: removeExtensions,
             deviceIdentifier: automaticPath
                 ? altServerDeviceIdentifier
@@ -677,7 +754,7 @@ struct ContentView: View {
                 profiles: profileStore.profiles,
                 preferredProfileID: profileStore.selectedID,
                 certificate: certStore.selected,
-                requestedBundleID: bundleId,
+                requestedBundleID: effectiveBundleID(for: inspection),
                 removeExtensions: removeExtensions,
                 deviceIdentifier: altServerDeviceIdentifier
             )
@@ -706,7 +783,7 @@ struct ContentView: View {
             profiles: profileStore.profiles,
             preferredProfileID: profile.id,
             certificate: cert,
-            requestedBundleID: bundleId,
+            requestedBundleID: effectiveBundleID(for: inspection),
             removeExtensions: removeExtensions,
             deviceIdentifier: automaticProvisioningEnabled && isAppleAccountReady
                 ? altServerDeviceIdentifier
@@ -744,7 +821,7 @@ struct ContentView: View {
         let request = SigningRequest(
             ipa: ipa, p12: p12, password: pw,
             profiles: profileFiles.map { SigningRequest.Profile(url: profileStore.fileURL(for: $0), name: $0.displayName) },
-            bundleID: bundleId.trimmingCharacters(in: .whitespacesAndNewlines),
+            bundleID: effectiveBundleID(for: inspection).trimmingCharacters(in: .whitespacesAndNewlines),
             output: output, temporaryDirectory: signer.tempDir,
             removeExtensions: removeExtensions, enableDocuments: enableDocuments,
             matchAppEntitlements: matchAppEntitlements, dylib: dylibURL,
